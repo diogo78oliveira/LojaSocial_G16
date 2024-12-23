@@ -1,4 +1,4 @@
-package com.example.g16_lojasocial.authentication.pages
+package com.example.g16_lojasocial.views
 
 
 import androidx.compose.foundation.layout.Arrangement
