@@ -20,7 +20,7 @@ class MainActivity : ComponentActivity() {
         val authViewModel : AuthViewModel by viewModels()
         val viewsViewModel : ViewsViewModel by viewModels()
         setContent {
-            G16_LojaSocialTheme() {
+            G16_LojaSocialTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     MyAppNavigation(modifier = Modifier.padding(innerPadding),authViewModel = authViewModel, viewsViewModel = viewsViewModel)
                 }
