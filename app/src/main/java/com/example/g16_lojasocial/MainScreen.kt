@@ -33,18 +33,33 @@ import com.example.g16_lojasocial.views.Eventos
 import com.example.g16_lojasocial.views.ViewsViewModel
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.livedata.observeAsState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(modifier: Modifier = Modifier, navController: NavController, authViewModel: AuthViewModel, viewsViewModel: ViewsViewModel) {
+fun MainScreen(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    authViewModel: AuthViewModel,
+    viewsViewModel: ViewsViewModel
+) {
+    val isVoluntario by authViewModel.isVoluntario.observeAsState(initial = false)
 
-    val navItemList = listOf(
-        NavItem("Beneficiarios", Icons.Default.Person, 0),
-        NavItem("Eventos", Icons.Default.Star, 0),
-        NavItem("Registar", Icons.Default.Add, 0),
-        NavItem("Voluntários", Icons.Default.DateRange, 0),
-        NavItem("Estatisticas", Icons.Default.List, 0),
-    )
+    val navItemList = if (isVoluntario) {
+        listOf(
+            NavItem("Beneficiarios", Icons.Default.Person, 0, 0), // Maps to HomePage
+            NavItem("Eventos", Icons.Default.Star, 0, 1),         // Maps to NotificationPage
+            NavItem("Voluntários", Icons.Default.DateRange, 0, 3) // Maps to Eventos
+        )
+    } else {
+        listOf(
+            NavItem("Beneficiarios", Icons.Default.Person, 0, 0),
+            NavItem("Eventos", Icons.Default.Star, 0, 1),
+            NavItem("Registar", Icons.Default.Add, 0, 2),
+            NavItem("Voluntários", Icons.Default.DateRange, 0, 3),
+            NavItem("Estatisticas", Icons.Default.List, 0, 4)
+        )
+    }
 
     var selectedIndex by remember {
         mutableIntStateOf(0)
@@ -57,15 +72,11 @@ fun MainScreen(modifier: Modifier = Modifier, navController: NavController, auth
                 navItemList.forEachIndexed { index, navItem ->
                     NavigationBarItem(
                         selected = selectedIndex == index,
-                        onClick = {
-                            selectedIndex = index
-                        },
+                        onClick = { selectedIndex = index },
                         icon = {
                             BadgedBox(badge = {
                                 if (navItem.badgeCount > 0)
-                                    Badge {
-                                        Text(text = navItem.badgeCount.toString())
-                                    }
+                                    Badge { Text(text = navItem.badgeCount.toString()) }
                             }) {
                                 Icon(
                                     imageVector = navItem.icon,
@@ -75,39 +86,42 @@ fun MainScreen(modifier: Modifier = Modifier, navController: NavController, auth
                             }
                         },
                         label = {
-                            Text(text = navItem.label,
-                                fontSize = 10.sp,
-                                )
-
+                            Text(
+                                text = navItem.label,
+                                fontSize = 10.sp
+                            )
                         }
                     )
                 }
             }
         }
     ) { innerPadding ->
+        val selectedNavItem = navItemList[selectedIndex]
+
         ContentScreen(
             modifier = Modifier.padding(innerPadding),
-            selectedIndex = selectedIndex,
+            selectedScreenIndex = selectedNavItem.screenIndex, // Pass the correct screen index
             navController = navController,
             authViewModel = authViewModel,
             viewsViewModel = viewsViewModel
         )
+
     }
 }
 
 @Composable
 fun ContentScreen(
     modifier: Modifier = Modifier,
-    selectedIndex: Int,
+    selectedScreenIndex: Int,
     navController: NavController,
     authViewModel: AuthViewModel,
     viewsViewModel: ViewsViewModel
 ) {
-    when (selectedIndex) {
+    when (selectedScreenIndex) {
         0 -> HomePage(navController = navController, authViewModel = authViewModel)
-        1 -> NotificationPage()
-        2 -> SignupPage(navController = navController, viewsViewModel = viewsViewModel) // Pass the viewsViewModel here
-        3 -> Eventos()
+        1 -> Eventos()
+        2 -> SignupPage(navController = navController, viewsViewModel = viewsViewModel)
+        3 -> NotificationPage()
         4 -> Estatisticas()
     }
 }

@@ -1,6 +1,5 @@
 package com.example.g16_lojasocial.views
 
-
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.LiveData
