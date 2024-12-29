@@ -3,7 +3,7 @@ package com.example.g16_lojasocial.views
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.g16_lojasocial.model.ModelPage
+import com.example.g16_lojasocial.ModelPage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
