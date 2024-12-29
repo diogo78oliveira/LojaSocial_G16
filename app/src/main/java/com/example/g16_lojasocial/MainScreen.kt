@@ -100,7 +100,7 @@ fun MainScreen(
 
         ContentScreen(
             modifier = Modifier.padding(innerPadding),
-            selectedScreenIndex = selectedNavItem.screenIndex, // Pass the correct screen index
+            selectedScreenIndex = selectedNavItem.screenIndex,
             navController = navController,
             authViewModel = authViewModel,
             viewsViewModel = viewsViewModel

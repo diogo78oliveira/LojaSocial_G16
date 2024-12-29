@@ -41,10 +41,8 @@ class ModelPage(
             }
     }
 
-    // Retrieves the current Firebase user
     fun getCurrentUser() = auth.currentUser
 
-    // Logs out the user
     fun signout() {
         auth.signOut()
     }
