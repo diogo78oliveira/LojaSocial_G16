@@ -118,7 +118,7 @@ fun ContentScreen(
     viewsViewModel: ViewsViewModel
 ) {
     when (selectedScreenIndex) {
-        0 -> HomePage(navController = navController, authViewModel = authViewModel)
+        0 -> HomePage(navController = navController, authViewModel = authViewModel, viewsViewModel = viewsViewModel)
         1 -> Eventos()
         2 -> SignupPage(navController = navController, viewsViewModel = viewsViewModel)
         3 -> NotificationPage()
