@@ -1,67 +1,70 @@
 package com.example.g16_lojasocial.authentication
 
+import android.graphics.ColorSpace.Model
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.g16_lojasocial.model.ModelPage
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.launch
 
-class AuthViewModel : ViewModel() {
-
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
-    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
+class AuthViewModel(private val modelPage: ModelPage) : ViewModel() {
 
     private val _authState = MutableLiveData<AuthState>()
-    val authState: LiveData<AuthState> = _authState
+    val authState: LiveData<AuthState> get() = _authState
 
     private val _isVoluntario = MutableLiveData<Boolean>()
-    val isVoluntario: LiveData<Boolean> = _isVoluntario
+    val isVoluntario: LiveData<Boolean> get() = _isVoluntario
 
-    init {
-        checkAuthStatus()
-    }
 
+
+    // Check if user is logged in and their role
     fun checkAuthStatus() {
-        if (auth.currentUser == null) {
+        val user = modelPage.getCurrentUser()
+        if (user == null) {
             _authState.value = AuthState.Unauthenticaded
         } else {
             _authState.value = AuthState.Authenticated
-            checkIfVoluntario(auth.currentUser!!.uid)
+            checkIfVoluntario(user.uid)
         }
     }
 
+    // Login logic
     fun login(email: String, password: String) {
         if (email.isEmpty() || password.isEmpty()) {
-            _authState.value = AuthState.Error("Email e Password nao podem estar vazios")
+            _authState.value = AuthState.Error("Email e Password não podem estar vazios.")
             return
         }
 
         _authState.value = AuthState.Loading
-        auth.signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    _authState.value = AuthState.Authenticated
-                    checkIfVoluntario(auth.currentUser!!.uid)
-                } else {
-                    _authState.value = AuthState.Error(task.exception?.message ?: "Erro")
-                }
+
+        modelPage.login(
+            email = email,
+            password = password,
+            onSuccess = {
+                _authState.value = AuthState.Authenticated
+                checkAuthStatus()
+            },
+            onError = { error ->
+                _authState.value = AuthState.Error(error)
             }
+        )
     }
 
+    // Check if the user is a "Voluntário"
     private fun checkIfVoluntario(uid: String) {
-        firestore.collection("Voluntarios")
-            .document(uid)
-            .get()
-            .addOnSuccessListener { document ->
-                _isVoluntario.value = document.exists()
+        viewModelScope.launch {
+            modelPage.checkIfVoluntario(uid) { isVoluntario ->
+                _isVoluntario.postValue(isVoluntario)
             }
-            .addOnFailureListener {
-                _isVoluntario.value = false
-            }
+        }
     }
 
+    // Logout logic
     fun signout() {
-        auth.signOut()
+        modelPage.signout()
         _authState.value = AuthState.Unauthenticaded
         _isVoluntario.value = false
     }

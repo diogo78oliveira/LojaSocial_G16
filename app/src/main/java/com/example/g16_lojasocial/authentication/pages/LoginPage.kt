@@ -27,29 +27,32 @@ import com.example.g16_lojasocial.authentication.AuthState
 import com.example.g16_lojasocial.authentication.AuthViewModel
 
 @Composable
-fun LoginPage(modifier: Modifier = Modifier, navController: NavController, authViewModel: AuthViewModel) {
+fun LoginPage(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    authViewModel: AuthViewModel
+) {
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    val authState by authViewModel.authState.observeAsState()
 
-    var email by remember {
-        mutableStateOf("")
+    // Handle Toast for errors here
+    authState?.let { state ->
+        if (state is AuthState.Error) {
+            ShowToastMessage(state.message)
         }
-
-    var password by remember {
-        mutableStateOf("")
     }
 
-    val authState = authViewModel.authState.observeAsState()
-    val context = LocalContext.current
-
-    LaunchedEffect(authState.value) {
-        when(authState.value){
-            is AuthState.Authenticated -> navController.navigate("mainScreen")
-            is AuthState.Error -> Toast.makeText(context,
-                (authState.value as AuthState.Error).message, Toast.LENGTH_SHORT).show()
-            else -> Unit
+    // Use LaunchedEffect to trigger navigation once authentication state changes
+    LaunchedEffect(authState) {
+        if (authState is AuthState.Authenticated) {
+            // Navigate to mainScreen only when authenticated
+            navController.navigate("mainScreen") {
+                // Clear the back stack to prevent navigating back to the login page
+                popUpTo("loginPage") { inclusive = true }
+            }
         }
-
     }
-
 
     Column(
         modifier = modifier.fillMaxSize(),
@@ -57,37 +60,36 @@ fun LoginPage(modifier: Modifier = Modifier, navController: NavController, authV
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(text = "Login", fontSize = 32.sp)
-
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
             value = email,
-            onValueChange = {
-            email = it
-        },
-        label = {
-            Text(text = "Email")
-            }
+            onValueChange = { email = it },
+            label = { Text("Email") }
         )
+
         OutlinedTextField(
             value = password,
-            onValueChange = {
-                password = it
-            },
-            label = {
-                Text(text = "Password")
-            }
+            onValueChange = { password = it },
+            label = { Text("Password") }
         )
+
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(onClick = {
-            authViewModel.login(email,password)
-        },
-            enabled = authState.value != AuthState.Loading
+        Button(
+            onClick = { authViewModel.login(email, password) },
+            enabled = authState != AuthState.Loading
         ) {
-            Text(text = "Login")
+            Text("Login")
         }
+    }
+}
 
-
+@Composable
+fun ShowToastMessage(message: String) {
+    // This is the correct way to show Toast within a composable context
+    val context = LocalContext.current
+    LaunchedEffect(message) {
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
     }
 }
