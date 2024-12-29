@@ -90,5 +90,56 @@ class ModelPage(
                 }
             }
     }
+
+
+    fun getAllBeneficiarios(onSuccess: (List<String>) -> Unit, onError: (String) -> Unit) {
+        firestore.collection("Beneficiarios")
+            .get()
+            .addOnSuccessListener { documents ->
+                val nomesList = documents.mapNotNull { it.getString("nome") }
+                onSuccess(nomesList)
+            }
+            .addOnFailureListener { exception ->
+                onError("Falha ao obter dados: ${exception.message}")
+            }
+    }
+
+    fun saveUserData(
+        nome: String,
+        dataNascimento: String,
+        email: String,
+        telemovel: String,
+        morada: String,
+        codigoPostal: String,
+        nacionalidade: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            onError("Usuário não autenticado.")
+            return
+        }
+
+        val userData = hashMapOf(
+            "nome" to nome,
+            "dataNascimento" to dataNascimento,
+            "email" to email,
+            "telemovel" to telemovel,
+            "morada" to morada,
+            "codigoPostal" to codigoPostal,
+            "nacionalidade" to nacionalidade
+        )
+
+        firestore.collection("Beneficiarios")
+            .add(userData) // Using `.add` to generate a unique document ID automatically
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener { exception ->
+                onError("Falha ao salvar dados: ${exception.message}")
+            }
+    }
+
 }
 
