@@ -25,28 +25,25 @@ import androidx.navigation.NavController
 import com.example.g16_lojasocial.authentication.AuthState
 import com.example.g16_lojasocial.authentication.AuthViewModel
 import android.app.DatePickerDialog
-import android.widget.DatePicker
+import android.util.Log
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.remember
-import androidx.compose.ui.tooling.preview.Preview
 import java.util.Calendar
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun HomePage(
@@ -57,6 +54,9 @@ fun HomePage(
 ) {
     val authState = authViewModel.authState.observeAsState()
     var showPopup by remember { mutableStateOf(false) }
+    var showEditPopup by remember { mutableStateOf(false) }
+    var selectedBeneficiaryId by remember { mutableStateOf("") }
+    var selectedBeneficiaryData by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
 
     // Fetch Beneficiarios data when the page is displayed
     LaunchedEffect(Unit) {
@@ -98,6 +98,16 @@ fun HomePage(
             PopupDialog(viewModel = viewsViewModel, onDismiss = { showPopup = false })
         }
 
+        if (showEditPopup) {
+            EditPopupDialog(
+                selectedBeneficiaryId = selectedBeneficiaryId,
+                selectedBeneficiaryData = selectedBeneficiaryData,
+                viewModel = viewsViewModel,
+                onDismiss = { showEditPopup = false }
+            )
+        }
+
+
         Column(
             modifier = Modifier.align(Alignment.Center),
             verticalArrangement = Arrangement.Center,
@@ -109,7 +119,7 @@ fun HomePage(
             LazyColumn(
                 modifier = Modifier
                     .padding(16.dp)
-                    .shadow(2.dp, shape = MaterialTheme.shapes.extraSmall) // Adding shadow here
+                    .shadow(2.dp, shape = MaterialTheme.shapes.extraSmall)
             ) {
                 items(beneficiariosList) { beneficiario ->
                     Box(
@@ -119,46 +129,55 @@ fun HomePage(
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween, // To space the icons to the right
-                            verticalAlignment = Alignment.CenterVertically // To vertically align the icons and text
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // Name Text
                             Text(
-                                text = beneficiario,
+                                text = beneficiario.nome,
                                 modifier = Modifier
-                                    .weight(1f) // Allow the name to take the remaining space
-                                    .padding(start = 16.dp) // Padding to the left
+                                    .weight(1f)
+                                    .padding(start = 16.dp)
                             )
 
-
                             Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp), // Space between the icons
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 modifier = Modifier.padding(end = 16.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Filled.Edit, // Example icon
-                                    contentDescription = "Icon 1",
+                                    imageVector = Icons.Filled.Edit,
+                                    contentDescription = "Edit",
                                     modifier = Modifier
                                         .size(24.dp)
                                         .clickable {
-
+                                            selectedBeneficiaryId = beneficiario.id // Use the correct ID field
+                                            selectedBeneficiaryData = mapOf(
+                                                "nome" to beneficiario.nome,
+                                                "dataNascimento" to beneficiario.dataNascimento,
+                                                "email" to beneficiario.email,
+                                                "telemovel" to beneficiario.telemovel,
+                                                "morada" to beneficiario.morada,
+                                                "codigoPostal" to beneficiario.codigoPostal,
+                                                "nacionalidade" to beneficiario.nacionalidade
+                                            )
+                                            showEditPopup = true
                                         }
                                 )
                                 Icon(
-                                    imageVector = Icons.Filled.ExitToApp, // Example icon
-                                    contentDescription = "Icon 2",
+                                    imageVector = Icons.Filled.ExitToApp,
+                                    contentDescription = "Delete",
                                     modifier = Modifier
                                         .size(24.dp)
                                         .clickable {
-
+                                            // Handle delete action
                                         }
                                 )
                                 Icon(
-                                    imageVector = Icons.Filled.Menu, // Example icon
-                                    contentDescription = "Icon 3",
-                                    modifier = Modifier.size(24.dp)
+                                    imageVector = Icons.Filled.Menu,
+                                    contentDescription = "Menu",
+                                    modifier = Modifier
+                                        .size(24.dp)
                                         .clickable {
-
+                                            // Handle additional actions
                                         }
                                 )
                             }
@@ -243,7 +262,11 @@ fun PopupDialog(viewModel: ViewsViewModel, onDismiss: () -> Unit) {
                     readOnly = true,
                     trailingIcon = {
                         IconButton(onClick = { datePickerDialog.show() }) {
-                            Icon(imageVector = Icons.Filled.DateRange, contentDescription = "Calendar Icon", tint = Color.Gray)
+                            Icon(
+                                imageVector = Icons.Filled.DateRange,
+                                contentDescription = "Calendar Icon",
+                                tint = Color.Gray
+                            )
                         }
                     }
                 )
@@ -282,5 +305,104 @@ fun PopupDialog(viewModel: ViewsViewModel, onDismiss: () -> Unit) {
         }
     )
 
+}
 
+@Composable
+fun EditPopupDialog(
+    selectedBeneficiaryId: String,
+    selectedBeneficiaryData: Map<String, String>,
+    viewModel: ViewsViewModel,
+    onDismiss: () -> Unit
+) {
+    var nome by remember { mutableStateOf(selectedBeneficiaryData["nome"] ?: "") }
+    var dataNascimento by remember { mutableStateOf(selectedBeneficiaryData["dataNascimento"] ?: "") }
+    var email by remember { mutableStateOf(selectedBeneficiaryData["email"] ?: "") }
+    var telemovel by remember { mutableStateOf(selectedBeneficiaryData["telemovel"] ?: "") }
+    var morada by remember { mutableStateOf(selectedBeneficiaryData["morada"] ?: "") }
+    var codigoPostal by remember { mutableStateOf(selectedBeneficiaryData["codigoPostal"] ?: "") }
+    var nacionalidade by remember { mutableStateOf(selectedBeneficiaryData["nacionalidade"] ?: "") }
+
+    val context = LocalContext.current
+
+    // Date Picker Dialog
+    val datePickerDialog = remember {
+        DatePickerDialog(
+            context,
+            { _, year, month, dayOfMonth ->
+                val formattedDate = String.format("%02d/%02d/%d", dayOfMonth, month + 1, year)
+                dataNascimento = formattedDate
+            },
+            // Set default date to today or existing value
+            Calendar.getInstance().apply {
+                time = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).parse(dataNascimento) ?: Date()
+            }.let {
+                it.get(Calendar.YEAR)
+            },
+            Calendar.getInstance().get(Calendar.MONTH),
+            Calendar.getInstance().get(Calendar.DAY_OF_MONTH)
+        )
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Editar Beneficiário") },
+        text = {
+            Column {
+                TextField(value = nome, onValueChange = { nome = it }, label = { Text("Nome") })
+                OutlinedTextField(
+                    value = dataNascimento,
+                    onValueChange = {},
+                    label = { Text("Data de Nascimento") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { datePickerDialog.show() },
+                    readOnly = true,
+                    trailingIcon = {
+                        IconButton(onClick = { datePickerDialog.show() }) {
+                            Icon(
+                                imageVector = Icons.Filled.DateRange,
+                                contentDescription = "Calendar Icon",
+                                tint = Color.Gray
+                            )
+                        }
+                    }
+                )
+                TextField(value = email, onValueChange = { email = it }, label = { Text("Email") })
+                TextField(value = telemovel, onValueChange = { telemovel = it }, label = { Text("Telemóvel") })
+                TextField(value = morada, onValueChange = { morada = it }, label = { Text("Morada") })
+                TextField(value = codigoPostal, onValueChange = { codigoPostal = it }, label = { Text("Código Postal") })
+                TextField(value = nacionalidade, onValueChange = { nacionalidade = it }, label = { Text("Nacionalidade") })
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                // Update user data
+                viewModel.updateUserData(
+                    documentId = selectedBeneficiaryId,
+                    nome = nome,
+                    dataNascimento = dataNascimento,
+                    email = email,
+                    telemovel = telemovel,
+                    morada = morada,
+                    codigoPostal = codigoPostal,
+                    nacionalidade = nacionalidade,
+                    onSuccess = {
+                        viewModel.fetchBeneficiarios() // Refresh the list
+                        onDismiss() // Close the dialog
+                    },
+                    onError = { errorMessage ->
+                        // Show error message (optional)
+                        Log.e("EditPopupDialog", "Error updating user: $errorMessage")
+                    }
+                )
+            }) {
+                Text("Salvar")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    )
 }

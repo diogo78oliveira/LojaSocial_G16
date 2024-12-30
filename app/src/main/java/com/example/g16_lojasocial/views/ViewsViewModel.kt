@@ -3,18 +3,21 @@ package com.example.g16_lojasocial.views
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.g16_lojasocial.ModelPage
+import com.example.g16_lojasocial.model.ModelPage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import com.example.g16_lojasocial.model.Beneficiario
+
 
 class ViewsViewModel(private val modelPage: ModelPage) : ViewModel() {
 
     private val _authState = MutableLiveData<AuthState>()
     val authState: LiveData<AuthState> = _authState
 
-    private val _beneficiariosList = MutableLiveData<List<String>>()
-    val beneficiariosList: LiveData<List<String>> = _beneficiariosList
+    private val _beneficiariosList = MutableLiveData<List<Beneficiario>>()
+    val beneficiariosList: LiveData<List<Beneficiario>> = _beneficiariosList
+
 
     fun registo(email: String, password: String, nome: String, telemovel: String, codigoPostal: String) {
         _authState.value = AuthState.Loading
@@ -58,14 +61,43 @@ class ViewsViewModel(private val modelPage: ModelPage) : ViewModel() {
 
     fun fetchBeneficiarios() {
         modelPage.getAllBeneficiarios(
-            onSuccess = { nomesList ->
-                _beneficiariosList.postValue(nomesList)
+            onSuccess = { beneficiarios ->
+                _beneficiariosList.postValue(beneficiarios)
             },
             onError = { errorMessage ->
-                // Handle error (show a message, etc.)
+                // Handle error (e.g., show a toast or log)
             }
         )
     }
+
+    fun updateUserData(
+        documentId: String, // Firestore document ID
+        nome: String,
+        dataNascimento: String,
+        email: String,
+        telemovel: String,
+        morada: String,
+        codigoPostal: String,
+        nacionalidade: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        CoroutineScope(Dispatchers.IO).launch {
+            modelPage.updateUserData(
+                documentId,
+                nome,
+                dataNascimento,
+                email,
+                telemovel,
+                morada,
+                codigoPostal,
+                nacionalidade,
+                onSuccess,
+                onError
+            )
+        }
+    }
+
 
     sealed class AuthState {
         object Authenticated : AuthState()

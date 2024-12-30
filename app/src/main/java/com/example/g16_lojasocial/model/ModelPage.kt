@@ -1,4 +1,4 @@
-package com.example.g16_lojasocial
+package com.example.g16_lojasocial.model
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -90,12 +90,26 @@ class ModelPage(
     }
 
 
-    fun getAllBeneficiarios(onSuccess: (List<String>) -> Unit, onError: (String) -> Unit) {
+    fun getAllBeneficiarios(
+        onSuccess: (List<Beneficiario>) -> Unit,
+        onError: (String) -> Unit
+    ) {
         firestore.collection("Beneficiarios")
             .get()
             .addOnSuccessListener { documents ->
-                val nomesList = documents.mapNotNull { it.getString("nome") }
-                onSuccess(nomesList)
+                val beneficiariosList = documents.map { document ->
+                    Beneficiario(
+                        id = document.id,
+                        nome = document.getString("nome") ?: "",
+                        dataNascimento = document.getString("dataNascimento") ?: "",
+                        email = document.getString("email") ?: "",
+                        telemovel = document.getString("telemovel") ?: "",
+                        morada = document.getString("morada") ?: "",
+                        codigoPostal = document.getString("codigoPostal") ?: "",
+                        nacionalidade = document.getString("nacionalidade") ?: ""
+                    )
+                }
+                onSuccess(beneficiariosList)
             }
             .addOnFailureListener { exception ->
                 onError("Falha ao obter dados: ${exception.message}")
@@ -138,6 +152,39 @@ class ModelPage(
                 onError("Falha ao salvar dados: ${exception.message}")
             }
     }
+
+    fun updateUserData(
+        documentId: String,
+        nome: String,
+        dataNascimento: String,
+        email: String,
+        telemovel: String,
+        morada: String,
+        codigoPostal: String,
+        nacionalidade: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        val userData = hashMapOf(
+            "nome" to nome,
+            "dataNascimento" to dataNascimento,
+            "email" to email,
+            "telemovel" to telemovel,
+            "morada" to morada,
+            "codigoPostal" to codigoPostal,
+            "nacionalidade" to nacionalidade
+        )
+
+        firestore.collection("Beneficiarios").document(documentId)
+            .set(userData)
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener { exception ->
+                onError("Falha ao atualizar dados: ${exception.message}")
+            }
+    }
+
 
 }
 

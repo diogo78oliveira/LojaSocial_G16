@@ -1,13 +1,10 @@
 package com.example.g16_lojasocial.authentication
 
-import android.graphics.ColorSpace.Model
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.g16_lojasocial.ModelPage
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
+import com.example.g16_lojasocial.model.ModelPage
 import kotlinx.coroutines.launch
 
 class AuthViewModel(private val modelPage: ModelPage) : ViewModel() {
