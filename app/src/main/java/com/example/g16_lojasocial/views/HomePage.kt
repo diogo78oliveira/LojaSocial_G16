@@ -56,6 +56,8 @@ fun HomePage(
     val authState = authViewModel.authState.observeAsState()
     var showPopup by remember { mutableStateOf(false) }
     var showEditPopup by remember { mutableStateOf(false) }
+    var showDeletePopup by remember { mutableStateOf(false) }
+
     var selectedBeneficiaryId by remember { mutableStateOf("") }
     var selectedBeneficiaryData by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
     var searchText by remember { mutableStateOf("") } // Search bar state
@@ -98,7 +100,7 @@ fun HomePage(
                 .align(Alignment.TopEnd)
                 .padding(16.dp)
         ) {
-            Text(text = "Adicionar")
+            Text(text = "Adicionar benificiário")
         }
 
         if (showPopup) {
@@ -111,6 +113,18 @@ fun HomePage(
                 selectedBeneficiaryData = selectedBeneficiaryData,
                 viewModel = viewsViewModel,
                 onDismiss = { showEditPopup = false }
+            )
+        }
+
+        if (showDeletePopup) {
+            DeletePopupDialog(
+                selectedBeneficiaryId = selectedBeneficiaryId,
+                onDismiss = { showDeletePopup = false },
+                onConfirm = { itemsLevados ->
+                    Log.d("HomePage", "Items levados: $itemsLevados")
+                    showDeletePopup = false
+                },
+                viewModel = viewsViewModel
             )
         }
 
@@ -190,7 +204,8 @@ fun HomePage(
                                     modifier = Modifier
                                         .size(24.dp)
                                         .clickable {
-                                            // Handle delete action
+                                            selectedBeneficiaryId = beneficiario.id
+                                            showDeletePopup = true
                                         }
                                 )
                                 Icon(
@@ -421,6 +436,55 @@ fun EditPopupDialog(
                 )
             }) {
                 Text("Salvar")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    )
+}
+
+@Composable
+fun DeletePopupDialog(
+    selectedBeneficiaryId: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit,
+    viewModel: ViewsViewModel
+) {
+    var itemsLevados by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Itens levados pelo beneficiário") },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = itemsLevados,
+                    onValueChange = { itemsLevados = it },
+                    placeholder = { Text("Items levados") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                if (itemsLevados.isNotBlank()) {
+                    viewModel.saveArtigosLevados(
+                        idBeneficiario = selectedBeneficiaryId,
+                        descArtigo = itemsLevados,
+                        onSuccess = {
+                            onConfirm(itemsLevados)
+                            onDismiss()
+                        },
+                        onError = { error ->
+                            Log.e("DeletePopupDialog", "Error saving data: $error")
+                        }
+                    )
+                }
+            }) {
+                Text("Confirmar")
             }
         },
         dismissButton = {

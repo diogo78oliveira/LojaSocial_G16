@@ -2,6 +2,9 @@ package com.example.g16_lojasocial.model
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class ModelPage(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
@@ -185,6 +188,27 @@ class ModelPage(
             }
     }
 
+    fun saveArtigosLevados(
+        idBeneficiario: String,
+        descArtigo: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        val data = mapOf(
+            "IDBenificiario" to idBeneficiario,
+            "data" to SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date()),
+            "descArtigo" to descArtigo
+        )
+
+        firestore.collection("ArtigosLevados")
+            .add(data)
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener { exception ->
+                onError("Falha ao salvar dados: ${exception.message}")
+            }
+    }
 
 }
 

@@ -8,6 +8,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.example.g16_lojasocial.model.Beneficiario
+import com.google.firebase.firestore.FirebaseFirestore
 
 
 class ViewsViewModel(private val modelPage: ModelPage) : ViewModel() {
@@ -98,6 +99,19 @@ class ViewsViewModel(private val modelPage: ModelPage) : ViewModel() {
         }
     }
 
+    fun saveArtigosLevados(
+        idBeneficiario: String,
+        descArtigo: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        modelPage.saveArtigosLevados(
+            idBeneficiario = idBeneficiario,
+            descArtigo = descArtigo,
+            onSuccess = onSuccess,
+            onError = onError
+        )
+    }
 
     sealed class AuthState {
         object Authenticated : AuthState()
