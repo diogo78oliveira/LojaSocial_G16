@@ -39,6 +39,7 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import java.text.SimpleDateFormat
@@ -57,6 +58,7 @@ fun HomePage(
     var showEditPopup by remember { mutableStateOf(false) }
     var selectedBeneficiaryId by remember { mutableStateOf("") }
     var selectedBeneficiaryData by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    var searchText by remember { mutableStateOf("") } // Search bar state
 
     // Fetch Beneficiarios data when the page is displayed
     LaunchedEffect(Unit) {
@@ -65,6 +67,11 @@ fun HomePage(
 
     // Observe the Beneficiarios list
     val beneficiariosList by viewsViewModel.beneficiariosList.observeAsState(emptyList())
+
+    // Filtered list based on search text
+    val filteredBeneficiarios = beneficiariosList.filter {
+        it.nome.contains(searchText, ignoreCase = true)
+    }
 
     LaunchedEffect(authState.value) {
         when (authState.value) {
@@ -107,21 +114,36 @@ fun HomePage(
             )
         }
 
-
         Column(
-            modifier = Modifier.align(Alignment.Center),
-            verticalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(text = "Lista de beneficiários", fontSize = 32.sp)
 
-            // Display the list of Beneficiarios
+            // Search bar
+            OutlinedTextField(
+                value = searchText,
+                onValueChange = { searchText = it },
+                label = { Text("Procurar por nome") },
+                modifier = Modifier.fillMaxWidth(),
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search Icon"
+                    )
+                }
+            )
+
+            // Display the filtered list of Beneficiarios
             LazyColumn(
                 modifier = Modifier
-                    .padding(16.dp)
+                    .fillMaxWidth()
                     .shadow(2.dp, shape = MaterialTheme.shapes.extraSmall)
             ) {
-                items(beneficiariosList) { beneficiario ->
+                items(filteredBeneficiarios) { beneficiario ->
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -149,7 +171,7 @@ fun HomePage(
                                     modifier = Modifier
                                         .size(24.dp)
                                         .clickable {
-                                            selectedBeneficiaryId = beneficiario.id // Use the correct ID field
+                                            selectedBeneficiaryId = beneficiario.id
                                             selectedBeneficiaryData = mapOf(
                                                 "nome" to beneficiario.nome,
                                                 "dataNascimento" to beneficiario.dataNascimento,
@@ -188,6 +210,7 @@ fun HomePage(
         }
     }
 }
+
 
 @Composable
 fun PopupDialog(viewModel: ViewsViewModel, onDismiss: () -> Unit) {
@@ -231,6 +254,7 @@ fun PopupDialog(viewModel: ViewsViewModel, onDismiss: () -> Unit) {
                     codigoPostal = codigoPostal,
                     nacionalidade = nacionalidade
                 )
+                viewModel.fetchBeneficiarios()
                 onDismiss()
             }) {
                 Text("Confirmar")
