@@ -43,6 +43,7 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.core.graphics.toColorInt
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -62,8 +63,8 @@ fun HomePage(
 
     var selectedBeneficiaryId by remember { mutableStateOf("") }
     var selectedBeneficiaryData by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
-    var searchText by remember { mutableStateOf("") } // Search bar state
-
+    var searchNome by remember { mutableStateOf("") } // Search bar state
+    var searchContacto by remember { mutableStateOf("") } // Search bar state
 
 
 
@@ -83,8 +84,9 @@ fun HomePage(
     val beneficiariosList by viewsViewModel.beneficiariosList.observeAsState(emptyList())
 
     // Filtered list based on search text
-    val filteredBeneficiarios = beneficiariosList.filter {
-        it.nome.contains(searchText, ignoreCase = true)
+    val filteredBeneficiarios = beneficiariosList.filter { beneficiario ->
+        beneficiario.nome.contains(searchNome, ignoreCase = true) ||
+                beneficiario.telemovel.contains(searchNome, ignoreCase = true)
     }
 
     LaunchedEffect(authState.value) {
@@ -162,9 +164,9 @@ fun HomePage(
 
             // Search bar
             OutlinedTextField(
-                value = searchText,
-                onValueChange = { searchText = it },
-                label = { Text("Procurar por nome") },
+                value = searchNome,
+                onValueChange = { searchNome = it },
+                label = { Text("Procurar por nome ou contacto") },
                 modifier = Modifier.fillMaxWidth(),
                 leadingIcon = {
                     Icon(
