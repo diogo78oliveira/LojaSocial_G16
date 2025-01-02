@@ -113,6 +113,24 @@ class ViewsViewModel(private val modelPage: ModelPage) : ViewModel() {
         )
     }
 
+    private val _artigosList = MutableLiveData<List<Map<String, Any>>>()
+    val artigosList: LiveData<List<Map<String, Any>>> = _artigosList
+
+    fun fetchArtigosByBeneficiario(idBeneficiario: String) {
+        modelPage.getArtigosByBeneficiario(
+            idBeneficiario = idBeneficiario,
+            onSuccess = { artigos ->
+                _artigosList.postValue(artigos)
+            },
+            onError = { errorMessage ->
+                // Handle error (e.g., log or show a message)
+            }
+        )
+    }
+
+
+
+
     sealed class AuthState {
         object Authenticated : AuthState()
         object Unauthenticated : AuthState()

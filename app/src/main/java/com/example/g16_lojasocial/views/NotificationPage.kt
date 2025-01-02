@@ -13,7 +13,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun NotificationPage(modifier: Modifier = Modifier) {
+fun NotificationPage(modifier: Modifier = Modifier, isVoluntario: Boolean) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -27,5 +27,6 @@ fun NotificationPage(modifier: Modifier = Modifier) {
             fontWeight = FontWeight.SemiBold,
             color = Color.White
         )
+        Text("Is Voluntario: $isVoluntario")
     }
 }

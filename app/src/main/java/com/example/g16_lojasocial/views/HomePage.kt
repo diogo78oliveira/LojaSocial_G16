@@ -26,6 +26,7 @@ import com.example.g16_lojasocial.authentication.AuthState
 import com.example.g16_lojasocial.authentication.AuthViewModel
 import android.app.DatePickerDialog
 import android.util.Log
+
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -57,10 +58,21 @@ fun HomePage(
     var showPopup by remember { mutableStateOf(false) }
     var showEditPopup by remember { mutableStateOf(false) }
     var showDeletePopup by remember { mutableStateOf(false) }
+    var showListaArtigosLevadosPopup by remember { mutableStateOf(false) }
 
     var selectedBeneficiaryId by remember { mutableStateOf("") }
     var selectedBeneficiaryData by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
     var searchText by remember { mutableStateOf("") } // Search bar state
+
+
+
+
+    LaunchedEffect(selectedBeneficiaryId) {
+        if (selectedBeneficiaryId.isNotEmpty()) {
+            viewsViewModel.fetchArtigosByBeneficiario(selectedBeneficiaryId)
+        }
+    }
+
 
     // Fetch Beneficiarios data when the page is displayed
     LaunchedEffect(Unit) {
@@ -127,6 +139,17 @@ fun HomePage(
                 viewModel = viewsViewModel
             )
         }
+
+        if (showListaArtigosLevadosPopup) {
+            ArtigoListWithDialog(
+                selectedBeneficiaryId = selectedBeneficiaryId,
+                showListaArtigosLevadosPopup = showListaArtigosLevadosPopup, // Pass the value here
+                onDismiss = { showListaArtigosLevadosPopup = false },
+                viewModel = viewsViewModel
+            )
+        }
+
+
 
         Column(
             modifier = Modifier
@@ -214,7 +237,10 @@ fun HomePage(
                                     modifier = Modifier
                                         .size(24.dp)
                                         .clickable {
-                                            // Handle additional actions
+
+                                            selectedBeneficiaryId = beneficiario.id
+                                            showListaArtigosLevadosPopup = true
+
                                         }
                                 )
                             }
@@ -494,3 +520,48 @@ fun DeletePopupDialog(
         }
     )
 }
+
+@Composable
+fun ArtigoListWithDialog(
+    selectedBeneficiaryId: String,  // Receive this parameter
+    showListaArtigosLevadosPopup: Boolean,  // State for showing the popup
+    onDismiss: () -> Unit,  // Callback to dismiss the dialog
+    viewModel: ViewsViewModel  // The ViewModel to call fetchArtigosByBeneficiario
+) {
+    // Observe the artigosList LiveData
+    val artigosList by viewModel.artigosList.observeAsState(emptyList())  // Default to empty list if no data
+
+    // Trigger fetchArtigosByBeneficiario when the popup is shown
+    if (showListaArtigosLevadosPopup) {
+        LaunchedEffect(selectedBeneficiaryId) {
+            // Fetch artigos when the popup is shown for the first time or beneficiary is changed
+            viewModel.fetchArtigosByBeneficiario(selectedBeneficiaryId)
+        }
+
+        // Show AlertDialog with LazyColumn displaying artigos
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text("Artigos Levados") },
+            text = {
+                LazyColumn {
+                    items(artigosList) { artigo ->
+                        Text(
+                            text = "Data: ${artigo["data"]}"
+                        )
+                        Text(
+                            text = "Descrição: ${artigo["descArtigo"]}",
+                            modifier = Modifier.padding(bottom = 8.dp),
+
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = onDismiss) {
+                    Text("Fechar")
+                }
+            }
+        )
+    }
+}
+

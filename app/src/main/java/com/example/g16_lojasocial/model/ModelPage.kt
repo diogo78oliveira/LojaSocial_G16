@@ -8,7 +8,7 @@ import java.util.Locale
 
 class ModelPage(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
-    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
+    val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) {
 
     // Handles login operation
@@ -209,6 +209,29 @@ class ModelPage(
                 onError("Falha ao salvar dados: ${exception.message}")
             }
     }
+
+    fun getArtigosByBeneficiario(
+        idBeneficiario: String,
+        onSuccess: (List<Map<String, Any>>) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        firestore.collection("ArtigosLevados")
+            .whereEqualTo("IDBenificiario", idBeneficiario)
+            .get()
+            .addOnSuccessListener { documents ->
+                val artigosList = documents.map { document ->
+                    mapOf(
+                        "data" to document.getString("data").orEmpty(),
+                        "descArtigo" to document.getString("descArtigo").orEmpty()
+                    )
+                }
+                onSuccess(artigosList)
+            }
+            .addOnFailureListener { exception ->
+                onError("Erro ao buscar artigos: ${exception.message}")
+            }
+    }
+
 
 }
 
