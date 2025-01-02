@@ -1,6 +1,8 @@
 package com.example.g16_lojasocial.model
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -56,6 +58,7 @@ class ModelPage(
         nome: String,
         telemovel: String,
         codigoPostal: String,
+        respostaAjuda: String,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
@@ -73,7 +76,8 @@ class ModelPage(
                         val userData = hashMapOf(
                             "nome" to nome,
                             "telemovel" to telemovel,
-                            "codPostal" to codigoPostal
+                            "codPostal" to codigoPostal,
+                            "respostaAjuda" to respostaAjuda
                         )
 
                         // Save user data to Firestore
@@ -232,6 +236,138 @@ class ModelPage(
             }
     }
 
+    fun saveOrUpdateDia(date: String, onComplete: (Boolean) -> Unit) {
+        val userId = auth.currentUser?.uid
+
+        if (userId != null) {
+            val ajudaRef: DocumentReference = firestore.collection("Ajuda").document(userId)
+
+            ajudaRef.get().addOnSuccessListener { document ->
+                if (document.exists()) {
+                    // If the document exists, update the "Dia" field
+                    ajudaRef.update("Dia", date).addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            onComplete(true)
+                        } else {
+                            onComplete(false)
+                        }
+                    }
+                } else {
+                    // If the document doesn't exist, create a new document with the "Dia" field
+                    ajudaRef.set(mapOf("Dia" to date)).addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            onComplete(true)
+                        } else {
+                            onComplete(false)
+                        }
+                    }
+                }
+            }.addOnFailureListener {
+                onComplete(false)
+            }
+        } else {
+            onComplete(false) // If no user is logged in
+        }
+    }
+
+    fun getDia(onResult: (String?) -> Unit) {
+        val ajudaRef: CollectionReference = firestore.collection("Ajuda")
+
+        ajudaRef.get().addOnSuccessListener { querySnapshot ->
+            if (!querySnapshot.isEmpty) {
+                // Iterate through documents in the "Ajuda" collection
+                for (document in querySnapshot.documents) {
+                    val dia = document.getString("Dia")
+                    // Return the Dia value (assumes there's only one document or you want the first one)
+                    onResult(dia)
+                    return@addOnSuccessListener
+                }
+            } else {
+                onResult(null) // No documents in the collection
+            }
+        }.addOnFailureListener {
+            onResult(null) // Error in getting data
+        }
+    }
+
+    fun updateRespostaAjuda(resposta: String, onComplete: (Boolean) -> Unit) {
+        val userId = auth.currentUser?.uid
+
+        if (userId != null) {
+            val voluntarioRef: DocumentReference = firestore.collection("Voluntarios").document(userId)
+
+            voluntarioRef.update("respostaAjuda", resposta)
+                .addOnCompleteListener { task ->
+                    onComplete(task.isSuccessful)
+                }
+                .addOnFailureListener {
+                    onComplete(false)
+                }
+        } else {
+            onComplete(false) // If no user is logged in
+        }
+    }
+
+    // Function to get "respostaAjuda" from Firestore
+    fun getRespostaAjuda(onResult: (String?) -> Unit) {
+        val userId = auth.currentUser?.uid
+
+        if (userId != null) {
+            val voluntarioRef: DocumentReference = firestore.collection("Voluntarios").document(userId)
+            voluntarioRef.get()
+                .addOnSuccessListener { document ->
+                    onResult(document.getString("respostaAjuda"))
+                }
+                .addOnFailureListener {
+                    onResult(null)
+                }
+        } else {
+            onResult(null) // No user logged in
+        }
+    }
+
+    fun getVoluntariosSim(onResult: (List<Voluntario>) -> Unit) {
+        firestore.collection("Voluntarios")
+            .whereEqualTo("respostaAjuda", "Sim")
+            .get()
+            .addOnSuccessListener { documents ->
+                val voluntariosList = documents.map { document ->
+                    Voluntario(
+                        id = document.id,
+                        nome = document.getString("nome") ?: "",
+                        telemovel = document.getString("telemovel") ?: "",
+                        respostaAjuda = document.getString("respostaAjuda") ?: ""
+                    )
+                }
+                onResult(voluntariosList)
+            }
+            .addOnFailureListener {
+                onResult(emptyList())  // Return an empty list in case of failure
+            }
+    }
+
+fun updateRespostaAjudaForAllUsersModel(newResponse: String, callback: (Boolean) -> Unit) {
+    val db = FirebaseFirestore.getInstance()
+    val usersCollection = db.collection("Voluntarios") // Replace "users" with your collection name
+
+    usersCollection.get().addOnSuccessListener { querySnapshot ->
+        val batch = db.batch()
+        for (document in querySnapshot.documents) {
+            val userRef = document.reference
+            batch.update(userRef, "respostaAjuda", newResponse)
+        }
+
+        // Commit the batch
+        batch.commit().addOnCompleteListener { task ->
+            callback(task.isSuccessful)
+        }
+    }.addOnFailureListener {
+        callback(false)
+    }
 
 }
+
+}
+
+
 

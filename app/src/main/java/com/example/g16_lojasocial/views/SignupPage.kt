@@ -46,7 +46,9 @@ fun SignupPage(modifier: Modifier = Modifier, navController: NavController, view
         mutableStateOf("")
     }
 
-
+    val respostaAjuda by remember {
+        mutableStateOf("Não")
+    }
 
 
     Column(
@@ -119,8 +121,9 @@ fun SignupPage(modifier: Modifier = Modifier, navController: NavController, view
             val currentNome = nome
             val currentTelemovel = telemovel
             val currentCodigoPostal = codigoPostal
+            val currentrespostaAjuda = respostaAjuda
 
-            viewsViewModel.registo(currentEmail, currentPassword, currentNome, currentTelemovel, currentCodigoPostal)
+            viewsViewModel.registo(currentEmail, currentPassword, currentNome, currentTelemovel, currentCodigoPostal, currentrespostaAjuda)
         }) {
             Text(text = "Registo")
         }

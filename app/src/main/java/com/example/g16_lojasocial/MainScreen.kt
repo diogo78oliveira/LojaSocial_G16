@@ -124,7 +124,7 @@ fun ContentScreen(
         0 -> HomePage(navController = navController, authViewModel = authViewModel, viewsViewModel = viewsViewModel)
         1 -> Eventos()
         2 -> SignupPage(navController = navController, viewsViewModel = viewsViewModel)
-        3 -> NotificationPage(isVoluntario = isVoluntario)
+        3 -> NotificationPage(isVoluntario = isVoluntario, viewsViewModel = viewsViewModel)
         4 -> Estatisticas()
     }
 }
