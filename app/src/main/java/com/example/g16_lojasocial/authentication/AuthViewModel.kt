@@ -16,7 +16,6 @@ class AuthViewModel(private val modelPage: ModelPage) : ViewModel() {
     val isVoluntario: LiveData<Boolean> get() = _isVoluntario
 
 
-
     // Check if user is logged in and their role
     fun checkAuthStatus() {
         val user = modelPage.getCurrentUser()
@@ -66,7 +65,6 @@ class AuthViewModel(private val modelPage: ModelPage) : ViewModel() {
         _isVoluntario.value = false
     }
 }
-
 
 sealed class AuthState{
     object Authenticated : AuthState()
