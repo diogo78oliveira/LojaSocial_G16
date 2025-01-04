@@ -182,6 +182,13 @@ class ViewsViewModel(public val modelPage: ModelPage) : ViewModel() {
 
     }
 
+    fun addEvent(nome: String, descricao: String, diaEvento: String, estado: String, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val success = modelPage.addEvent(nome, descricao, diaEvento, estado)
+            onResult(success)
+        }
+    }
+
     sealed class AuthState {
         object Authenticated : AuthState()
         object Unauthenticated : AuthState()

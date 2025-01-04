@@ -49,32 +49,112 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import com.google.android.material.datepicker.MaterialDatePicker
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 @Composable
-fun Eventos(modifier: Modifier = Modifier, isVoluntario: Boolean, viewsViewModel: ViewsViewModel) {
-    Column(
-        modifier = modifier
-            .fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Eventos Page",
-            fontSize = 40.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = Color.Black // Text color set to black
-        )
+fun Eventos(
+    modifier: Modifier = Modifier,
+    isVoluntario: Boolean,
+    viewsViewModel: ViewsViewModel
+) {
+    var showDialog by remember { mutableStateOf(false) }
+    var nome by remember { mutableStateOf("") }
+    var estado = "decorrer"
+    var descricao by remember { mutableStateOf("") }
+    var diaEvento by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
-        // Display the value of isVoluntario
-        Spacer(modifier = Modifier.height(16.dp)) // Add some spacing
-        Text(
-            text = "Is Voluntário: $isVoluntario",
-            fontSize = 20.sp,
-            color = Color.Black // Text color set to black
+    val calendar = Calendar.getInstance()
+    val datePickerDialog = remember {
+        DatePickerDialog(
+            context,
+            { _, year, month, dayOfMonth ->
+                diaEvento = String.format("%02d/%02d/%d", dayOfMonth, month + 1, year)
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
         )
     }
+
+    Box(modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("Eventos Page", fontSize = 40.sp, fontWeight = FontWeight.SemiBold)
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("Is Voluntário: $isVoluntario", fontSize = 20.sp)
+        }
+
+        if (!isVoluntario) {
+            Button(
+                onClick = { showDialog = true },
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp)
+            ) {
+                Text("Adicionar Evento")
+            }
+        }
+
+        if (showDialog) {
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                title = { Text("Adicionar Evento") },
+                text = {
+                    Column {
+                        OutlinedTextField(value = nome, onValueChange = { nome = it }, label = { Text("Nome") })
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(value = descricao, onValueChange = { descricao = it }, label = { Text("Descrição") })
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = diaEvento,
+                            onValueChange = {},
+                            label = { Text("Dia do evento") },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { datePickerDialog.show() },
+                            readOnly = true,
+                            trailingIcon = {
+                                IconButton(onClick = { datePickerDialog.show() }) {
+                                    Icon(Icons.Filled.DateRange, contentDescription = "Calendar Icon")
+                                }
+                            }
+                        )
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            viewsViewModel.addEvent(nome, descricao, diaEvento, estado) { success ->
+                                if (success) {
+                                    Toast.makeText(context, "Evento adicionado com sucesso!", Toast.LENGTH_SHORT).show()
+                                    showDialog = false
+                                } else {
+                                    Toast.makeText(context, "Erro ao adicionar evento!", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        },
+                        enabled = nome.isNotBlank() && descricao.isNotBlank() && diaEvento.isNotBlank() // Disable button if fields are empty
+                    ) {
+                        Text("Confirmar")
+                    }
+                },
+                dismissButton = {
+                    Button(onClick = { showDialog = false }) {
+                        Text("Cancelar")
+                    }
+                }
+            )
+        }
+    }
 }
+

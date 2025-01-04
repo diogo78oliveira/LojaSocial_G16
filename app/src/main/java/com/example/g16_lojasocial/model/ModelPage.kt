@@ -4,6 +4,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -364,8 +365,25 @@ fun updateRespostaAjudaForAllUsersModel(newResponse: String, callback: (Boolean)
     }.addOnFailureListener {
         callback(false)
     }
-
 }
+
+    suspend fun addEvent(nome: String, descricao: String, diaEvento: String, estado: String): Boolean {
+        return try {
+            val eventData = mapOf(
+                "nome" to nome,
+                "descricao" to descricao,
+                "diaEvento" to diaEvento,
+                "estado" to estado
+            )
+            firestore.collection("Eventos")
+                .add(eventData)
+                .await() // Wait for the task to complete
+            true // Return true if successful
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false // Return false if an error occurs
+        }
+    }
 
 }
 
