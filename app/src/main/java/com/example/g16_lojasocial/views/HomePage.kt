@@ -1,6 +1,4 @@
 package com.example.g16_lojasocial.views
-
-
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box

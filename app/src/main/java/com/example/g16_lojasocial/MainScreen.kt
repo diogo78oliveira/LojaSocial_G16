@@ -1,7 +1,10 @@
 package com.example.g16_lojasocial
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
@@ -12,8 +15,10 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,6 +39,9 @@ import com.example.g16_lojasocial.views.ViewsViewModel
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,31 +74,42 @@ fun MainScreen(
     }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
+            .background(Color(0xFFFFFFFF)),
         bottomBar = {
-            NavigationBar {
+            NavigationBar(
+                containerColor = Color(0xFFFFFFFF),
+                modifier = Modifier
+                    .shadow(16.dp, shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                    .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                    .border(1.dp, Color(0xFFE4E7EC), shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+            ) {
                 navItemList.forEachIndexed { index, navItem ->
                     NavigationBarItem(
                         selected = selectedIndex == index,
                         onClick = { selectedIndex = index },
+                        colors = NavigationBarItemDefaults.colors(indicatorColor = Color(0xFFFFFFFF)),
                         icon = {
                             BadgedBox(badge = {
                                 if (navItem.badgeCount > 0)
-                                    Badge { Text(text = navItem.badgeCount.toString()) }
+                                    Badge(containerColor = Color(0xFFFFFFFF)) {
+                                        Text(text = navItem.badgeCount.toString())
+                                    }
                             }) {
                                 Icon(
                                     imageVector = navItem.icon,
                                     contentDescription = "Icon",
-                                    tint = if (selectedIndex == index) Color(0xFF65c2eb) else Color.Gray
+                                    tint = if (selectedIndex == index) Color(0xFF004EBB) else Color(0xFF8C98AB)
                                 )
                             }
                         },
                         label = {
                             Text(
                                 text = navItem.label,
-                                fontSize = 10.sp
+                                fontSize = 10.sp,
+                                color = if (selectedIndex == index) Color(0xFF004EBB) else Color(0xFF8C98AB)
                             )
-                        }
+                        },
                     )
                 }
             }
