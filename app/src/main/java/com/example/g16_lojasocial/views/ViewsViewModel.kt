@@ -1,5 +1,6 @@
 package com.example.g16_lojasocial.views
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -12,8 +13,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.example.g16_lojasocial.model.Beneficiario
+import com.example.g16_lojasocial.model.Event
 import com.example.g16_lojasocial.model.Voluntario
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.tasks.await
 
 
 class ViewsViewModel(public val modelPage: ModelPage) : ViewModel() {
@@ -182,10 +187,35 @@ class ViewsViewModel(public val modelPage: ModelPage) : ViewModel() {
 
     }
 
-    fun addEvent(nome: String, descricao: String, diaEvento: String, estado: String, onResult: (Boolean) -> Unit) {
+    fun addEvent(nome: String, descricao: String, diaEvento: String, imageUrl: String,  onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
-            val success = modelPage.addEvent(nome, descricao, diaEvento, estado)
+            val success = modelPage.addEvent(nome, descricao, diaEvento, imageUrl)
             onResult(success)
+        }
+    }
+
+    private val _events = MutableStateFlow<List<Event>>(emptyList())
+    val events: StateFlow<List<Event>> = _events
+
+    fun loadEvents() {
+        viewModelScope.launch {
+            val allEvents = modelPage.getEvents()
+            val ongoingEvents = allEvents
+            _events.value = ongoingEvents
+        }
+    }
+
+    fun deleteEvent(eventId: String) {
+        viewModelScope.launch {
+            try {
+                // Call the model to delete the event
+                modelPage.deleteEvent(eventId)
+
+                // Reload events after deletion
+                loadEvents()
+            } catch (e: Exception) {
+                Log.e("ViewsViewModel", "Error deleting event", e)
+            }
         }
     }
 

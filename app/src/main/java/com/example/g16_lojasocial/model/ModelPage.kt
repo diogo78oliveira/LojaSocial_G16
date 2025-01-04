@@ -1,9 +1,11 @@
 package com.example.g16_lojasocial.model
 
+import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -367,13 +369,13 @@ fun updateRespostaAjudaForAllUsersModel(newResponse: String, callback: (Boolean)
     }
 }
 
-    suspend fun addEvent(nome: String, descricao: String, diaEvento: String, estado: String): Boolean {
+    suspend fun addEvent(nome: String, descricao: String, diaEvento: String, imageUrl: String): Boolean {
         return try {
             val eventData = mapOf(
                 "nome" to nome,
                 "descricao" to descricao,
                 "diaEvento" to diaEvento,
-                "estado" to estado
+                "imageUrl" to imageUrl
             )
             firestore.collection("Eventos")
                 .add(eventData)
@@ -382,6 +384,38 @@ fun updateRespostaAjudaForAllUsersModel(newResponse: String, callback: (Boolean)
         } catch (e: Exception) {
             e.printStackTrace()
             false // Return false if an error occurs
+        }
+    }
+
+    suspend fun getEvents(): List<Event> {
+        return try {
+            val events = firestore.collection("Eventos")
+                .orderBy("diaEvento", Query.Direction.ASCENDING)
+                .get()
+                .await()
+                .documents
+                .mapNotNull { doc ->
+                    doc.toObject(Event::class.java)?.apply {
+                        id = doc.id
+                    }
+                }
+            events
+        } catch (e: Exception) {
+            emptyList() // Return an empty list on error
+        }
+    }
+
+    suspend fun deleteEvent(eventId: String) {
+        try {
+            // Assuming your events are stored in a Firestore collection called "events"
+            FirebaseFirestore.getInstance()
+                .collection("Eventos")
+                .document(eventId)
+                .delete()
+                .await()  // Ensure the operation completes before proceeding
+        } catch (e: Exception) {
+            Log.e("EventModel", "Error deleting event", e)
+            throw e  // Propagate the error if needed
         }
     }
 

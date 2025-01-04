@@ -34,6 +34,7 @@ import androidx.compose.foundation.border
 
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
@@ -42,18 +43,24 @@ import java.util.Calendar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import com.example.g16_lojasocial.model.Event
 import com.google.android.material.datepicker.MaterialDatePicker
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import coil.compose.AsyncImage
+
 
 @Composable
 fun Eventos(
@@ -63,12 +70,20 @@ fun Eventos(
 ) {
     var showDialog by remember { mutableStateOf(false) }
     var nome by remember { mutableStateOf("") }
-    var estado = "decorrer"
     var descricao by remember { mutableStateOf("") }
     var diaEvento by remember { mutableStateOf("") }
+    var imageUrl by remember { mutableStateOf("") }
     val context = LocalContext.current
 
+    val events by viewsViewModel.events.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewsViewModel.loadEvents()
+    }
+
     val calendar = Calendar.getInstance()
+    val today = calendar.timeInMillis
+
     val datePickerDialog = remember {
         DatePickerDialog(
             context,
@@ -78,33 +93,80 @@ fun Eventos(
             calendar.get(Calendar.YEAR),
             calendar.get(Calendar.MONTH),
             calendar.get(Calendar.DAY_OF_MONTH)
-        )
+        ).apply {
+            datePicker.minDate = today // Restrict to today's date or later
+        }
+    }
+
+    // Filter events into two categories
+    val ongoingEvents = events.filter { event ->
+        val eventDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).parse(event.diaEvento)?.time ?: 0L
+        eventDate >= today
+    }
+    val pastEvents = events.filter { event ->
+        val eventDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).parse(event.diaEvento)?.time ?: 0L
+        eventDate < today
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text("Eventos Page", fontSize = 40.sp, fontWeight = FontWeight.SemiBold)
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("Is Voluntário: $isVoluntario", fontSize = 20.sp)
-        }
 
         if (!isVoluntario) {
-            Button(
-                onClick = { showDialog = true },
+            Column(
                 modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(16.dp)
+                    .padding(start = 16.dp, top = 16.dp) // Adjust padding for top section
             ) {
-                Text("Adicionar Evento")
+                Button(
+                    onClick = { showDialog = true },
+                    modifier = Modifier
+                        .padding(top = 8.dp) // Adjust space between title and button
+                ) {
+                    Text("Adicionar Evento")
+                }
             }
         }
 
+        // Main content column
+        Column(
+            modifier = Modifier
+                .padding(top = if (isVoluntario) 16.dp else 96.dp, start = 16.dp, end = 16.dp) // Adjust padding based on whether the user is a volunteer
+        ) {
+
+            // "Eventos a decorrer" title
+            Text(
+                "Eventos a decorrer",
+                fontSize = 24.sp, // Text size
+                fontWeight = FontWeight.Bold,
+                color = Color.Black // Ensure consistent text color
+            )
+
+            // Ongoing Events Section
+            LazyColumn(
+                modifier = Modifier.padding(top = 16.dp) // Adjust space between title and events list
+            ) {
+                items(ongoingEvents) { event ->
+                    EventCard(event = event, viewsViewModel = viewsViewModel, isVoluntario = isVoluntario)
+                }
+            }
+
+            // "Eventos acabados" Title with reduced padding
+            Text(
+                text = "Eventos acabados",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(vertical = 8.dp) // Reduced padding between titles
+            )
+
+            // Past Events Section
+            LazyColumn(
+                modifier = Modifier.weight(1f)
+            ) {
+                items(pastEvents) { event ->
+                    EventCard(event = event, viewsViewModel = viewsViewModel, isVoluntario = isVoluntario)
+                }
+            }
+        }
+
+        // Add event dialog
         if (showDialog) {
             AlertDialog(
                 onDismissRequest = { showDialog = false },
@@ -129,14 +191,17 @@ fun Eventos(
                                 }
                             }
                         )
+                        OutlinedTextField(value = imageUrl, onValueChange = { imageUrl = it }, label = { Text("URL da imagem") })
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
                 },
                 confirmButton = {
                     Button(
                         onClick = {
-                            viewsViewModel.addEvent(nome, descricao, diaEvento, estado) { success ->
+                            viewsViewModel.addEvent(nome, descricao, diaEvento, imageUrl) { success ->
                                 if (success) {
                                     Toast.makeText(context, "Evento adicionado com sucesso!", Toast.LENGTH_SHORT).show()
+                                    viewsViewModel.loadEvents() // Reload the events after adding
                                     showDialog = false
                                 } else {
                                     Toast.makeText(context, "Erro ao adicionar evento!", Toast.LENGTH_SHORT).show()
@@ -154,6 +219,45 @@ fun Eventos(
                     }
                 }
             )
+        }
+    }
+}
+
+
+@Composable
+fun EventCard(event: Event, viewsViewModel: ViewsViewModel, isVoluntario: Boolean) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            if (event.imageUrl.isNotBlank()) {
+                AsyncImage(
+                    model = event.imageUrl,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(64.dp)
+                        .clip(CircleShape)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(event.nome, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text(event.diaEvento, fontSize = 14.sp, color = Color.Gray)
+                Text(event.descricao, fontSize = 14.sp)
+            }
+            if (!isVoluntario) {
+                IconButton(onClick = { viewsViewModel.deleteEvent(event.id) }) {
+                    Icon(Icons.Filled.Delete, contentDescription = "Delete Event")
+                }
+            }
         }
     }
 }
