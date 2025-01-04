@@ -232,7 +232,7 @@ class ModelPage(
                 onSuccess(artigosList)
             }
             .addOnFailureListener { exception ->
-                onError("Erro ao buscar artigos: ${exception.message}")
+                onError("Erro ao procurar artigos: ${exception.message}")
             }
     }
 
