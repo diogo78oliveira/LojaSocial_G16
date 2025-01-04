@@ -23,10 +23,15 @@ import androidx.navigation.NavController
 import com.example.g16_lojasocial.authentication.AuthState
 import com.example.g16_lojasocial.authentication.AuthViewModel
 import android.app.DatePickerDialog
+import android.graphics.BitmapFactory
 import android.util.Log
-
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
@@ -38,9 +43,13 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.text.TextStyle
 import androidx.core.graphics.toColorInt
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -94,25 +103,15 @@ fun HomePage(
         }
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
+    Box(modifier = modifier.fillMaxSize().background(Color(0xFFFFFFFF))) {
         // "Sign Out" button
         TextButton(
             onClick = { authViewModel.signout() },
             modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(16.dp)
-        ) {
-            Text(text = "Sign Out")
-        }
-
-        // "Adicionar" button
-        TextButton(
-            onClick = { showPopup = true },
-            modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(16.dp)
         ) {
-            Text(text = "Adicionar benificiário")
+            Text(text = "Sign Out", fontSize = 16.sp, color = Color(0xFFFF6A6A))
         }
 
         if (showPopup) {
@@ -149,42 +148,92 @@ fun HomePage(
             )
         }
 
-
-
         Column(
             modifier = Modifier
-                .align(Alignment.Center)
-                .padding(16.dp),
+                .align(Alignment.TopCenter)
+                .padding(32.dp, 85.dp, 32.dp, 0.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "Lista de beneficiários", fontSize = 32.sp)
 
-            // Search bar
-            OutlinedTextField(
-                value = searchNome,
-                onValueChange = { searchNome = it },
-                label = { Text("Procurar por nome ou contacto") },
-                modifier = Modifier.fillMaxWidth(),
-                leadingIcon = {
+            Box(modifier = modifier.fillMaxWidth()
+                .background(Color(0xFFFFFFFF))
+                .shadow(
+                    elevation = 20.dp,
+                    spotColor = Color(0xFF000000).copy(alpha = 0.55f),
+                    shape = RoundedCornerShape(0.dp),
+                )){
+                // Search bar
+                OutlinedTextField(
+                    value = searchNome,
+                    onValueChange = { searchNome = it },
+                    placeholder = { Text("Pesquisar Beneficiário", color = Color(0xFFA9B3C1)) },
+                    textStyle = TextStyle(color = Color(0xFF101214)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(5.dp))
+                        .background(Color(0xFFFFFFFF)),
+                    trailingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search Icon",
+                            tint = Color(0xFF101214)
+                        )
+                    },
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color(0xFFE4E7EC),
+                        unfocusedIndicatorColor = Color(0xFFE4E7EC),
+                        disabledIndicatorColor = Color(0xFFE4E7EC),
+                        cursorColor = Color(0xFF101214),
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.size(5.dp))
+
+            Box(modifier = modifier.fillMaxWidth().background(Color(0xFFFFFFFF))){
+                TextButton(
+                    onClick = { showPopup = true },
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .clip(RoundedCornerShape(5.dp))
+                        .background(Color(0xFF004EBB))
+                        .size(125.dp, 40.dp),
+                    colors = ButtonDefaults.textButtonColors(containerColor = Color.Transparent)
+                ) {
+                    Text(text = "Adicionar", color = Color(0xFFFFFFFF))
+                    Spacer(modifier = Modifier.size(10.dp))
                     Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Search Icon"
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "person Icon",
+                        tint = Color(0xFFFFFFFF)
                     )
                 }
-            )
+            }
 
-            // Display the filtered list of Beneficiarios
+            Spacer(modifier = Modifier.size(5.dp))
+
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .shadow(2.dp, shape = MaterialTheme.shapes.extraSmall)
+                    .shadow(
+                        elevation = 20.dp,
+                        spotColor = Color(0xFF000000).copy(alpha = 0.55f),
+                        shape = RoundedCornerShape(0.dp),
+                    )
+                    .clip(RoundedCornerShape(5.dp))
+                    .background(Color(0xFFFFFFFF))
             ) {
-                items(filteredBeneficiarios) { beneficiario ->
+                itemsIndexed(filteredBeneficiarios) { index, beneficiario ->
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 16.dp)
+                            .background(if (index % 2 == 0) Color(0xFFFFFFFF) else Color(0xFFF3F4F6))
+                            .size(60.dp),
+                        contentAlignment = Alignment.Center
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -195,7 +244,8 @@ fun HomePage(
                                 text = beneficiario.nome,
                                 modifier = Modifier
                                     .weight(1f)
-                                    .padding(start = 16.dp)
+                                    .padding(start = 16.dp),
+                                color = Color(0xFF101214)
                             )
 
                             Row(
@@ -205,6 +255,7 @@ fun HomePage(
                                 Icon(
                                     imageVector = Icons.Filled.Edit,
                                     contentDescription = "Edit",
+                                    tint = Color(0xFF101214),
                                     modifier = Modifier
                                         .size(24.dp)
                                         .clickable {
@@ -224,6 +275,7 @@ fun HomePage(
                                 Icon(
                                     imageVector = Icons.Filled.ExitToApp,
                                     contentDescription = "Delete",
+                                    tint = Color(0xFF101214),
                                     modifier = Modifier
                                         .size(24.dp)
                                         .clickable {
@@ -234,13 +286,12 @@ fun HomePage(
                                 Icon(
                                     imageVector = Icons.Filled.Menu,
                                     contentDescription = "Menu",
+                                    tint = Color(0xFF101214),
                                     modifier = Modifier
                                         .size(24.dp)
                                         .clickable {
-
                                             selectedBeneficiaryId = beneficiario.id
                                             showListaArtigosLevadosPopup = true
-
                                         }
                                 )
                             }
