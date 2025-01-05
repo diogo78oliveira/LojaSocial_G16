@@ -118,86 +118,103 @@ fun LoginPage(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = {
-                    Text(
-                        text = "Insira o email",
-                        style = TextStyle(color = Color(0xFF101214))
-                    ) },
-                modifier = Modifier.fillMaxWidth()
-                    .clip(RoundedCornerShape(5.dp))
-                    .background(Color(0xFFFFFFFF)),
-                textStyle = TextStyle(
-                    color = Color(0xFF101214),
-                    fontSize = 16.sp
-                ),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    disabledContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color(0xFF101214),
-                    unfocusedIndicatorColor = Color(0xFF101214),
-                    disabledIndicatorColor = Color(0xFF101214),
-                    cursorColor = Color(0xFF101214),
+            Box(modifier = modifier.fillMaxWidth()
+                .background(Color(0xFFFFFFFF))
+                .shadow(
+                    elevation = 15.dp,
+                    spotColor = Color(0xFF000000).copy(alpha = 0.55f),
+                    shape = RoundedCornerShape(0.dp),
+                )){
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    placeholder = {
+                        Text(
+                            text = "Insira o email",
+                            style = TextStyle(color = Color(0xFFA9B3C1))
+                        ) },
+                    modifier = Modifier.fillMaxWidth()
+                        .clip(RoundedCornerShape(5.dp))
+                        .background(Color(0xFFFFFFFF)),
+                    textStyle = TextStyle(
+                        color = Color(0xFF101214),
+                        fontSize = 16.sp
+                    ),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent,
+                        cursorColor = Color(0xFF101214),
                     )
                 )
+            }
+
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = {
-                    Text(
-                        text = "Insira a palavra-passe",
-                        style = TextStyle(color = Color(0xFF101214))
-                    ) },
-                modifier = Modifier.fillMaxWidth()
-                    .clip(RoundedCornerShape(5.dp))
-                    .background(Color(0xFFFFFFFF)),
-                textStyle = TextStyle(
-                    color = Color(0xFF101214),
-                    fontSize = 16.sp
-                ),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    disabledContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color(0xFF101214),
-                    unfocusedIndicatorColor = Color(0xFF101214),
-                    disabledIndicatorColor = Color(0xFF101214),
-                    cursorColor = Color(0xFF101214),
-                ),
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        val context = LocalContext.current
-                        val iconBitmap = remember(passwordVisible) {
-                            try {
-                                val fileName = if (passwordVisible) "eyeClosed.png" else "eye.png"
-                                val inputStream = context.assets.open(fileName)
-                                BitmapFactory.decodeStream(inputStream)?.asImageBitmap()
-                            } catch (e: Exception) {
-                                null
+            Box(modifier = modifier.fillMaxWidth()
+                .background(Color(0xFFFFFFFF))
+                .shadow(
+                    elevation = 15.dp,
+                    spotColor = Color(0xFF000000).copy(alpha = 0.55f),
+                    shape = RoundedCornerShape(0.dp),
+                )){
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    placeholder = {
+                        Text(
+                            text = "Insira a palavra-passe",
+                            style = TextStyle(color = Color(0xFFA9B3C1))
+                        ) },
+                    modifier = Modifier.fillMaxWidth()
+                        .clip(RoundedCornerShape(5.dp))
+                        .background(Color(0xFFFFFFFF)),
+                    textStyle = TextStyle(
+                        color = Color(0xFF101214),
+                        fontSize = 16.sp
+                    ),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent,
+                        cursorColor = Color(0xFF101214),
+                    ),
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            val context = LocalContext.current
+                            val iconBitmap = remember(passwordVisible) {
+                                try {
+                                    val fileName = if (passwordVisible) "eyeClosed.png" else "eye.png"
+                                    val inputStream = context.assets.open(fileName)
+                                    BitmapFactory.decodeStream(inputStream)?.asImageBitmap()
+                                } catch (e: Exception) {
+                                    null
+                                }
                             }
-                        }
 
-                        if (iconBitmap != null) {
-                            Image(
-                                bitmap = iconBitmap,
-                                contentDescription = if (passwordVisible) "Esconder senha" else "Mostrar senha",
-                                modifier = Modifier.size(50.dp)
-                                    .absolutePadding(left = 0.dp, top = 0.dp, right = 10.dp, bottom = 0.dp)
-                            )
-                        } else {
-                            Text(text = "Icon not found", color = Color.Red) // Fallback in case of error
-                        }
+                            if (iconBitmap != null) {
+                                Image(
+                                    bitmap = iconBitmap,
+                                    contentDescription = if (passwordVisible) "Esconder senha" else "Mostrar senha",
+                                    modifier = Modifier.size(50.dp)
+                                        .absolutePadding(left = 0.dp, top = 0.dp, right = 10.dp, bottom = 0.dp)
+                                )
+                            } else {
+                                Text(text = "Icon not found", color = Color.Red) // Fallback in case of error
+                            }
 
+                        }
                     }
-                }
-            )
+                )
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -210,14 +227,22 @@ fun LoginPage(
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            Button(
-                onClick = { authViewModel.login(email, password) },
-                enabled = authState != AuthState.Loading,
-                modifier = Modifier.fillMaxWidth().height(60.dp),
-                shape = MaterialTheme.shapes.small,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF004EBB))
-            ) {
-                Text("LOGIN", fontSize = 16.sp, color = Color(0xFFFFFFFF))
+            Box(modifier = modifier.fillMaxWidth()
+                .background(Color(0xFFFFFFFF))
+                .shadow(
+                    elevation = 20.dp,
+                    spotColor = Color(0xFF000000).copy(alpha = 0.45f),
+                    shape = RoundedCornerShape(0.dp),
+                )){
+                Button(
+                    onClick = { authViewModel.login(email, password) },
+                    enabled = authState != AuthState.Loading,
+                    modifier = Modifier.fillMaxWidth().height(60.dp),
+                    shape = MaterialTheme.shapes.small,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF004EBB), disabledContainerColor = Color(0xFF247FFF))
+                ) {
+                    Text("LOGIN", fontSize = 16.sp, color = Color(0xFFFFFFFF))
+                }
             }
         }
     }

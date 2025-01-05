@@ -4,18 +4,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.CalendarToday
+import androidx.compose.material.icons.outlined.PeopleOutline
+import androidx.compose.material.icons.outlined.PersonAddAlt
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -55,17 +56,17 @@ fun MainScreen(
 
     val navItemList = if (isVoluntario) {
         listOf(
-            NavItem("Beneficiarios", Icons.Default.Person, 0, 0), // Maps to HomePage
-            NavItem("Eventos", Icons.Default.Star, 0, 1),         // Maps to NotificationPage
-            NavItem("Voluntários", Icons.Default.DateRange, 0, 3) // Maps to Eventos
+            NavItem("Beneficiarios", R.drawable.users, 0, 0), // Maps to HomePage
+            NavItem("Eventos", R.drawable.calendar, 0, 1),         // Maps to NotificationPage
+            NavItem("Voluntários", R.drawable.clock, 0, 3) // Maps to Eventos
         )
     } else {
         listOf(
-            NavItem("Beneficiarios", Icons.Default.Person, 0, 0),
-            NavItem("Eventos", Icons.Default.Star, 0, 1),
-            NavItem("Registar", Icons.Default.Add, 0, 2),
-            NavItem("Voluntários", Icons.Default.DateRange, 0, 3),
-            NavItem("Estatisticas", Icons.Default.List, 0, 4)
+            NavItem("Beneficiarios", R.drawable.users, 0, 0),
+            NavItem("Eventos", R.drawable.calendar, 0, 1),
+            NavItem("Registar", R.drawable.adduser, 0, 2),
+            NavItem("Voluntários", R.drawable.clock, 0, 3),
+            NavItem("Estatisticas", R.drawable.chart, 0, 4)
         )
     }
 
@@ -80,7 +81,6 @@ fun MainScreen(
             NavigationBar(
                 containerColor = Color(0xFFFFFFFF),
                 modifier = Modifier
-                    .shadow(16.dp, shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
                     .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
                     .border(1.dp, Color(0xFFE4E7EC), shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
             ) {
@@ -97,9 +97,10 @@ fun MainScreen(
                                     }
                             }) {
                                 Icon(
-                                    imageVector = navItem.icon,
+                                    painter = painterResource(navItem.icon),
                                     contentDescription = "Icon",
-                                    tint = if (selectedIndex == index) Color(0xFF004EBB) else Color(0xFF8C98AB)
+                                    tint = if (selectedIndex == index) Color(0xFF004EBB) else Color(0xFF8C98AB),
+                                    modifier = Modifier.size(30.dp)
                                 )
                             }
                         },

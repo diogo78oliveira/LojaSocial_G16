@@ -45,12 +45,19 @@ import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.CheckBox
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.PersonAddAlt
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.core.graphics.toColorInt
+import com.example.g16_lojasocial.R
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -175,18 +182,19 @@ fun HomePage(
                         .background(Color(0xFFFFFFFF)),
                     trailingIcon = {
                         Icon(
-                            imageVector = Icons.Default.Search,
+                            painter = painterResource(R.drawable.search),
                             contentDescription = "Search Icon",
-                            tint = Color(0xFF101214)
+                            modifier = Modifier.size(35.dp).padding(0.dp, 0.dp, 10.dp, 0.dp),
+                            tint = Color(0xFFA9B3C1)
                         )
                     },
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color.Transparent,
                         unfocusedContainerColor = Color.Transparent,
                         disabledContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color(0xFFE4E7EC),
-                        unfocusedIndicatorColor = Color(0xFFE4E7EC),
-                        disabledIndicatorColor = Color(0xFFE4E7EC),
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent,
                         cursorColor = Color(0xFF101214),
                     )
                 )
@@ -207,7 +215,7 @@ fun HomePage(
                     Text(text = "Adicionar", color = Color(0xFFFFFFFF))
                     Spacer(modifier = Modifier.size(10.dp))
                     Icon(
-                        imageVector = Icons.Default.Person,
+                        painter = painterResource(R.drawable.adduser),
                         contentDescription = "person Icon",
                         tint = Color(0xFFFFFFFF)
                     )
@@ -253,7 +261,7 @@ fun HomePage(
                                 modifier = Modifier.padding(end = 16.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Filled.Edit,
+                                    painter = painterResource(R.drawable.edit),
                                     contentDescription = "Edit",
                                     tint = Color(0xFF101214),
                                     modifier = Modifier
@@ -273,7 +281,7 @@ fun HomePage(
                                         }
                                 )
                                 Icon(
-                                    imageVector = Icons.Filled.ExitToApp,
+                                    painter = painterResource(R.drawable.check),
                                     contentDescription = "Delete",
                                     tint = Color(0xFF101214),
                                     modifier = Modifier
@@ -284,7 +292,7 @@ fun HomePage(
                                         }
                                 )
                                 Icon(
-                                    imageVector = Icons.Filled.Menu,
+                                    painter = painterResource(R.drawable.list),
                                     contentDescription = "Menu",
                                     tint = Color(0xFF101214),
                                     modifier = Modifier
