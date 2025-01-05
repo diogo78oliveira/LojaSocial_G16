@@ -111,14 +111,13 @@ fun HomePage(
     }
 
     Box(modifier = modifier.fillMaxSize().background(Color(0xFFFFFFFF))) {
-        // "Sign Out" button
         TextButton(
             onClick = { authViewModel.signout() },
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(16.dp)
         ) {
-            Text(text = "Sign Out", fontSize = 16.sp, color = Color(0xFFFF6A6A))
+            Text(text = "Sair", fontSize = 16.sp, color = Color(0xFFFF6A6A))
         }
 
         if (showPopup) {
