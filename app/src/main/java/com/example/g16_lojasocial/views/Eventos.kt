@@ -31,10 +31,11 @@ import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
@@ -108,65 +109,95 @@ fun Eventos(
         eventDate < today
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
-
-        if (!isVoluntario) {
-            Column(
-                modifier = Modifier
-                    .padding(start = 16.dp, top = 16.dp) // Adjust padding for top section
-            ) {
-                Button(
-                    onClick = { showDialog = true },
+    Box(modifier = modifier.fillMaxSize().background(Color(0xFFFFFFFF))) {
+        Column() {
+            if (!isVoluntario) {
+                Row(
                     modifier = Modifier
-                        .padding(top = 8.dp) // Adjust space between title and button
+                        .padding(16.dp, 32.dp, 16.dp, 0.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("Adicionar Evento")
+                    Text(
+                        "Eventos a decorrer",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF101214)
+                    )
+
+                    Button(
+                        onClick = { showDialog = true },
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(5.dp))
+                            .background(Color(0xFF004EBB))
+                            .size(120.dp, 40.dp),
+                        colors = ButtonDefaults.textButtonColors(containerColor = Color.Transparent)
+                    ) {
+                        Text("Novo Evento", color = Color(0xFFFFFFFF), fontSize = 12.sp)
+                    }
                 }
             }
-        }
 
-        // Main content column
-        Column(
-            modifier = Modifier
-                .padding(top = if (isVoluntario) 16.dp else 96.dp, start = 16.dp, end = 16.dp) // Adjust padding based on whether the user is a volunteer
-        ) {
-
-            // "Eventos a decorrer" title
-            Text(
-                "Eventos a decorrer",
-                fontSize = 24.sp, // Text size
-                fontWeight = FontWeight.Bold,
-                color = Color.Black // Ensure consistent text color
-            )
-
-            // Ongoing Events Section
             LazyColumn(
-                modifier = Modifier.padding(top = 16.dp) // Adjust space between title and events list
+                modifier = Modifier.padding(16.dp, 40.dp, 16.dp, 40.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                items(ongoingEvents) { event ->
-                    EventCard(event = event, viewsViewModel = viewsViewModel, isVoluntario = isVoluntario)
+                items(ongoingEvents.chunked(2)) { rowEvents ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(24.dp)
+                    ) {
+                        rowEvents.forEach { event ->
+                            EventCard(
+                                event = event,
+                                viewsViewModel = viewsViewModel,
+                                isVoluntario = isVoluntario,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+
+                        if (rowEvents.size == 1) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
                 }
             }
 
-            // "Eventos acabados" Title with reduced padding
             Text(
                 text = "Eventos acabados",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(vertical = 8.dp) // Reduced padding between titles
+                color = Color(0xFF101214),
+                modifier = Modifier.padding(start = 16.dp)
             )
 
-            // Past Events Section
             LazyColumn(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.padding(16.dp, 40.dp, 16.dp, 40.dp),
+
             ) {
-                items(pastEvents) { event ->
-                    EventCard(event = event, viewsViewModel = viewsViewModel, isVoluntario = isVoluntario)
+                items(pastEvents.chunked(2)) { rowEvents ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(24.dp)
+                    ) {
+                        rowEvents.forEach { event ->
+                            EventCard(
+                                event = event,
+                                viewsViewModel = viewsViewModel,
+                                isVoluntario = isVoluntario,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+
+                        if (rowEvents.size == 1) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
                 }
             }
         }
 
-        // Add event dialog
         if (showDialog) {
             AlertDialog(
                 onDismissRequest = { showDialog = false },
@@ -225,40 +256,55 @@ fun Eventos(
 
 
 @Composable
-fun EventCard(event: Event, viewsViewModel: ViewsViewModel, isVoluntario: Boolean) {
+fun EventCard(event: Event, viewsViewModel: ViewsViewModel, isVoluntario: Boolean, modifier: Modifier = Modifier) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp)
+        modifier = modifier
+            .shadow(
+                elevation = 20.dp,
+                spotColor = Color(0xFF000000).copy(alpha = 0.25f),
+                shape = RoundedCornerShape(0.dp),
+            )
+            .clip(RoundedCornerShape(5.dp))
+            .background(Color.White),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
-        Row(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
             if (event.imageUrl.isNotBlank()) {
                 AsyncImage(
                     model = event.imageUrl,
                     contentDescription = null,
                     modifier = Modifier
-                        .size(64.dp)
-                        .clip(CircleShape)
+                        .fillMaxWidth()
+                        .height(100.dp)
+                        .clip(RoundedCornerShape(0.dp)),
+                    contentScale = ContentScale.Crop
                 )
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                Text(event.nome, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF101214))
+                Text(event.diaEvento, fontSize = 14.sp, color = Color(0xFF8C98AB))
+                Text(event.descricao, fontSize = 14.sp, color = Color(0xFFC8CED7))
 
-            Column(modifier = Modifier.weight(1f)) {
-                Text(event.nome, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Text(event.diaEvento, fontSize = 14.sp, color = Color.Gray)
-                Text(event.descricao, fontSize = 14.sp)
-            }
-            if (!isVoluntario) {
-                IconButton(onClick = { viewsViewModel.deleteEvent(event.id) }) {
-                    Icon(Icons.Filled.Delete, contentDescription = "Delete Event")
+                if (!isVoluntario) {
+                    IconButton(onClick = { viewsViewModel.deleteEvent(event.id) }) {
+                        Icon(
+                            Icons.Filled.Delete,
+                            contentDescription = "Delete Event",
+                            tint = Color(0xFFFF6A6A)
+                        )
+                    }
                 }
             }
+
+
         }
     }
 }
+
 
