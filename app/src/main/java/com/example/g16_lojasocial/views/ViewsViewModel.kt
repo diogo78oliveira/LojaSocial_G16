@@ -8,17 +8,15 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.g16_lojasocial.model.ModelPage
+import com.example.g16_lojasocial.models.ModelPage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import com.example.g16_lojasocial.model.Beneficiario
-import com.example.g16_lojasocial.model.Event
-import com.example.g16_lojasocial.model.Voluntario
-import com.google.firebase.firestore.FirebaseFirestore
+import com.example.g16_lojasocial.models.Beneficiario
+import com.example.g16_lojasocial.models.Event
+import com.example.g16_lojasocial.models.Voluntario
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.tasks.await
 
 
 class ViewsViewModel(public val modelPage: ModelPage) : ViewModel() {
@@ -76,13 +74,12 @@ class ViewsViewModel(public val modelPage: ModelPage) : ViewModel() {
                 _beneficiariosList.postValue(beneficiarios)
             },
             onError = { errorMessage ->
-                // Handle error (e.g., show a toast or log)
             }
         )
     }
 
     fun updateUserData(
-        documentId: String, // Firestore document ID
+        documentId: String,
         nome: String,
         dataNascimento: String,
         email: String,
@@ -212,6 +209,18 @@ class ViewsViewModel(public val modelPage: ModelPage) : ViewModel() {
                 modelPage.deleteEvent(eventId)
 
                 // Reload events after deletion
+                loadEvents()
+            } catch (e: Exception) {
+                Log.e("ViewsViewModel", "Error deleting event", e)
+            }
+        }
+    }
+
+    fun updateEventStatus(id: String) {
+        viewModelScope.launch {
+            try {
+                modelPage.updateEventStatus(id)
+
                 loadEvents()
             } catch (e: Exception) {
                 Log.e("ViewsViewModel", "Error deleting event", e)

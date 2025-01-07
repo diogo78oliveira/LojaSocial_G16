@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import com.example.g16_lojasocial.authentication.AuthViewModel
-import com.example.g16_lojasocial.model.ModelPage
+import com.example.g16_lojasocial.models.ModelPage
 import com.example.g16_lojasocial.views.ViewsViewModel
 import com.example.g16_lojasocial.ui.theme.G16_LojaSocialTheme
 

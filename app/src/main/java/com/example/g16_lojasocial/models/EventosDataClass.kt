@@ -1,4 +1,4 @@
-package com.example.g16_lojasocial.model
+package com.example.g16_lojasocial.models
 
 data class Event(
     var id: String = "",

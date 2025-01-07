@@ -1,4 +1,4 @@
-package com.example.g16_lojasocial
+package com.example.g16_lojasocial.models
 
 data class NavItem(
     val label: String,

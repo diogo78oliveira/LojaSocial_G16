@@ -1,4 +1,4 @@
-package com.example.g16_lojasocial.model
+package com.example.g16_lojasocial.models
 
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
@@ -351,7 +351,7 @@ class ModelPage(
 
 fun updateRespostaAjudaForAllUsersModel(newResponse: String, callback: (Boolean) -> Unit) {
     val db = FirebaseFirestore.getInstance()
-    val usersCollection = db.collection("Voluntarios") // Replace "users" with your collection name
+    val usersCollection = db.collection("Voluntarios")
 
     usersCollection.get().addOnSuccessListener { querySnapshot ->
         val batch = db.batch()
@@ -375,15 +375,16 @@ fun updateRespostaAjudaForAllUsersModel(newResponse: String, callback: (Boolean)
                 "nome" to nome,
                 "descricao" to descricao,
                 "diaEvento" to diaEvento,
-                "imageUrl" to imageUrl
+                "imageUrl" to imageUrl,
+                "estado" to "decorrer"
             )
             firestore.collection("Eventos")
                 .add(eventData)
-                .await() // Wait for the task to complete
-            true // Return true if successful
+                .await()
+            true
         } catch (e: Exception) {
             e.printStackTrace()
-            false // Return false if an error occurs
+            false
         }
     }
 
@@ -401,24 +402,35 @@ fun updateRespostaAjudaForAllUsersModel(newResponse: String, callback: (Boolean)
                 }
             events
         } catch (e: Exception) {
-            emptyList() // Return an empty list on error
+            emptyList()
         }
     }
 
     suspend fun deleteEvent(eventId: String) {
         try {
-            // Assuming your events are stored in a Firestore collection called "events"
             FirebaseFirestore.getInstance()
                 .collection("Eventos")
                 .document(eventId)
                 .delete()
-                .await()  // Ensure the operation completes before proceeding
+                .await()
         } catch (e: Exception) {
             Log.e("EventModel", "Error deleting event", e)
-            throw e  // Propagate the error if needed
+            throw e
         }
     }
 
+    suspend fun updateEventStatus(eventId: String): Boolean {
+        return try {
+            firestore.collection("Eventos")
+                .document(eventId)
+                .update("estado", "terminado")
+                .await()
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
 }
 
 
