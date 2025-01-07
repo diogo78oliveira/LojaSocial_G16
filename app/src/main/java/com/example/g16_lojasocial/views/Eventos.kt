@@ -53,6 +53,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import com.example.g16_lojasocial.model.Event
@@ -102,14 +103,16 @@ fun Eventos(
     // Filter events into two categories
     val ongoingEvents = events.filter { event ->
         val eventDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).parse(event.diaEvento)?.time ?: 0L
-        eventDate >= today
+        eventDate >= today && event.estado == "decorrer"
     }
     val pastEvents = events.filter { event ->
         val eventDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).parse(event.diaEvento)?.time ?: 0L
-        eventDate < today
+        eventDate < today || event.estado != "decorrer"
     }
 
-    Box(modifier = modifier.fillMaxSize().background(Color(0xFFFFFFFF))) {
+    Box(modifier = modifier
+        .fillMaxSize()
+        .background(Color(0xFFFFFFFF))) {
         Column() {
             if (!isVoluntario) {
                 Row(
@@ -140,10 +143,12 @@ fun Eventos(
             }
 
             LazyColumn(
-                modifier = Modifier.padding(16.dp, 40.dp, 16.dp, 40.dp),
+                modifier = Modifier.padding(16.dp, 20.dp, 16.dp, 20.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 items(ongoingEvents.chunked(2)) { rowEvents ->
+                    Spacer(modifier = Modifier.height(40.dp))
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(24.dp)
@@ -161,21 +166,18 @@ fun Eventos(
                             Spacer(modifier = Modifier.weight(1f))
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(40.dp))
+
+                    Text(
+                        text = "Eventos Passados",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF101214),
+                        modifier = Modifier.padding(start = 16.dp)
+                    )
                 }
-            }
 
-            Text(
-                text = "Eventos acabados",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF101214),
-                modifier = Modifier.padding(start = 16.dp)
-            )
-
-            LazyColumn(
-                modifier = Modifier.padding(16.dp, 40.dp, 16.dp, 40.dp),
-
-            ) {
                 items(pastEvents.chunked(2)) { rowEvents ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -194,6 +196,8 @@ fun Eventos(
                             Spacer(modifier = Modifier.weight(1f))
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(40.dp))
                 }
             }
         }
@@ -201,28 +205,80 @@ fun Eventos(
         if (showDialog) {
             AlertDialog(
                 onDismissRequest = { showDialog = false },
-                title = { Text("Adicionar Evento") },
+                containerColor = Color(0xFFFFFFFF),
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.background(Color(0xFFFFFFFF)),
+                title = { Text("Adicionar Evento", color = Color(0xFF101214)) },
                 text = {
                     Column {
-                        OutlinedTextField(value = nome, onValueChange = { nome = it }, label = { Text("Nome") })
+                        OutlinedTextField(
+                            value = nome,
+                            onValueChange = { nome = it },
+                            label = { Text("Nome", style = TextStyle(color = Color(0xFFA9B3C1))) },
+                            modifier = Modifier.fillMaxWidth()
+                                .background(Color(0xFFFFFFFF)),
+                            textStyle = TextStyle(
+                                color = Color(0xFF101214),
+                                fontSize = 16.sp
+                            ),
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color(0xFFFFFFFF),
+                                unfocusedContainerColor = Color(0xFFFFFFFF),
+                                cursorColor = Color(0xFF101214),
+                            )
+                        )
                         Spacer(modifier = Modifier.height(8.dp))
-                        OutlinedTextField(value = descricao, onValueChange = { descricao = it }, label = { Text("Descrição") })
+                        OutlinedTextField(value = descricao, onValueChange = { descricao = it }, label = { Text("Descrição", style = TextStyle(color = Color(0xFFA9B3C1))) },
+                            modifier = Modifier.fillMaxWidth()
+                                .background(Color(0xFFFFFFFF)),
+                            textStyle = TextStyle(
+                                color = Color(0xFF101214),
+                                fontSize = 16.sp
+                            ),
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color(0xFFFFFFFF),
+                                unfocusedContainerColor = Color(0xFFFFFFFF),
+                                cursorColor = Color(0xFF101214),
+                            )
+                        )
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedTextField(
                             value = diaEvento,
                             onValueChange = {},
-                            label = { Text("Dia do evento") },
+                            label = { Text("Dia do evento", style = TextStyle(color = Color(0xFFA9B3C1))) },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { datePickerDialog.show() },
+                                .clickable { datePickerDialog.show() }
+                                .background(Color(0xFFFFFFFF)),
+                            textStyle = TextStyle(
+                                color = Color(0xFF101214),
+                                fontSize = 16.sp
+                            ),
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color(0xFFFFFFFF),
+                                unfocusedContainerColor = Color(0xFFFFFFFF),
+                                cursorColor = Color(0xFF101214),
+                            ),
                             readOnly = true,
                             trailingIcon = {
                                 IconButton(onClick = { datePickerDialog.show() }) {
-                                    Icon(Icons.Filled.DateRange, contentDescription = "Calendar Icon")
+                                    Icon(Icons.Filled.DateRange, contentDescription = "Calendar Icon", tint = Color(0xFF004EBB))
                                 }
                             }
                         )
-                        OutlinedTextField(value = imageUrl, onValueChange = { imageUrl = it }, label = { Text("URL da imagem") })
+                        OutlinedTextField(value = imageUrl, onValueChange = { imageUrl = it }, label = { Text("URL da imagem", style = TextStyle(color = Color(0xFFA9B3C1))) },
+                            modifier = Modifier.fillMaxWidth()
+                                .background(Color(0xFFFFFFFF)),
+                            textStyle = TextStyle(
+                                color = Color(0xFF101214),
+                                fontSize = 16.sp
+                            ),
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color(0xFFFFFFFF),
+                                unfocusedContainerColor = Color(0xFFFFFFFF),
+                                cursorColor = Color(0xFF101214),
+                            )
+                        )
                         Spacer(modifier = Modifier.height(8.dp))
                     }
                 },
@@ -239,14 +295,15 @@ fun Eventos(
                                 }
                             }
                         },
-                        enabled = nome.isNotBlank() && descricao.isNotBlank() && diaEvento.isNotBlank() // Disable button if fields are empty
+                        enabled = nome.isNotBlank() && descricao.isNotBlank() && diaEvento.isNotBlank(), // Disable button if fields are empty
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                     ) {
-                        Text("Confirmar")
+                        Text("Confirmar", color = Color(0xFF004EBB))
                     }
                 },
                 dismissButton = {
-                    Button(onClick = { showDialog = false }) {
-                        Text("Cancelar")
+                    Button(onClick = { showDialog = false }, colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)) {
+                        Text("Cancelar", color = Color(0xFFFF6A6A))
                     }
                 }
             )
@@ -257,11 +314,14 @@ fun Eventos(
 
 @Composable
 fun EventCard(event: Event, viewsViewModel: ViewsViewModel, isVoluntario: Boolean, modifier: Modifier = Modifier) {
+    var showDialog by remember { mutableStateOf(false) }
+
     Card(
+        onClick = { if (!isVoluntario) { showDialog = true } },
         modifier = modifier
             .shadow(
                 elevation = 20.dp,
-                spotColor = Color(0xFF000000).copy(alpha = 0.25f),
+                spotColor = Color(0xFF000000).copy(alpha = 0.35f),
                 shape = RoundedCornerShape(0.dp),
             )
             .clip(RoundedCornerShape(5.dp))
@@ -286,25 +346,40 @@ fun EventCard(event: Event, viewsViewModel: ViewsViewModel, isVoluntario: Boolea
                 )
             }
 
-            Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+            Column(modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)) {
                 Text(event.nome, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF101214))
                 Text(event.diaEvento, fontSize = 14.sp, color = Color(0xFF8C98AB))
                 Text(event.descricao, fontSize = 14.sp, color = Color(0xFFC8CED7))
-
-                if (!isVoluntario) {
-                    IconButton(onClick = { viewsViewModel.deleteEvent(event.id) }) {
-                        Icon(
-                            Icons.Filled.Delete,
-                            contentDescription = "Delete Event",
-                            tint = Color(0xFFFF6A6A)
-                        )
-                    }
-                }
             }
-
-
         }
     }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Terminar Evento", color = Color(0xFF101214)) },
+            text = { Text("Tem a certeza de que deseja terminar ou apagar este evento?", color = Color(0xFF101214)) },
+            containerColor = Color(0xFFFFFFFF),
+            modifier = Modifier.background(Color(0xFFFFFFFF)).clip(shape = RoundedCornerShape(10.dp)),
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        viewsViewModel.deleteEvent(event.id)
+                        showDialog = false
+                    },) { Text("Apagar", color = Color(0xFFFF6A6A)) }
+
+                TextButton(
+                    onClick = {
+                        viewsViewModel.updateEventStatus(event.id)
+                        showDialog = false
+                    },) { Text("Terminar", color = Color(0xFFFF6A6A)) }
+            },
+            confirmButton = { TextButton(onClick = { showDialog = false },) { Text("Não", color = Color(0xFF004EBB)) } }
+        )
+    }
 }
+
 
 

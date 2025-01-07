@@ -219,6 +219,18 @@ class ViewsViewModel(public val modelPage: ModelPage) : ViewModel() {
         }
     }
 
+    fun updateEventStatus(id: String) {
+        viewModelScope.launch {
+            try {
+                modelPage.updateEventStatus(id)
+
+                loadEvents()
+            } catch (e: Exception) {
+                Log.e("ViewsViewModel", "Error deleting event", e)
+            }
+        }
+    }
+
     sealed class AuthState {
         object Authenticated : AuthState()
         object Unauthenticated : AuthState()

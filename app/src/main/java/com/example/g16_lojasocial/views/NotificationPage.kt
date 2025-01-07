@@ -27,12 +27,14 @@ import com.example.g16_lojasocial.authentication.AuthViewModel
 import android.app.DatePickerDialog
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.AlertDialog
@@ -55,6 +57,30 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+@Composable
+fun CircularCheckbox(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .size(24.dp)
+            .clip(CircleShape)
+            .background(if (checked) Color(0xFF004EBB) else Color.White, CircleShape)
+            .border(2.dp, if (checked) Color(0xFF004EBB) else Color(0xFF8C98AB), CircleShape)
+            .clickable { onCheckedChange(!checked) },
+        contentAlignment = Alignment.Center
+    ) {
+        if (checked) {
+            Box(
+                modifier = Modifier
+                    .size(20.dp)
+                    .border(2.dp, Color(0xFFFFFFFF), CircleShape)
+                    .background(Color(0xFF004EBB), CircleShape)
+            )
+        }
+    }
+}
 
 @Composable
 fun NotificationPage(modifier: Modifier = Modifier, isVoluntario: Boolean, viewsViewModel: ViewsViewModel) {
@@ -126,32 +152,21 @@ fun NotificationPage(modifier: Modifier = Modifier, isVoluntario: Boolean, views
                     color = Color(0xFF8C98AB)
                 )
 
-                Spacer(modifier = Modifier.height(20.dp))
-
                 if (isVoluntario) {
                     // LazyColumn with options "Sim" and "Não"
                     LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                    ) {
+                        modifier = Modifier.fillMaxWidth()) {
                         items(2) { index ->
+                            Spacer(modifier = Modifier.height(20.dp))
+
                             Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 8.dp)
-                                    .background(Color.White.copy(alpha = 0.1f)),
-                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Start,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    text = if (index == 0) "Sim" else "Não",
-                                    fontSize = 16.sp,
-                                    color = Color.Black
-                                )
-                                Checkbox(
+                                CircularCheckbox(
                                     checked = respostaAjuda == if (index == 0) "Sim" else "Não",
-                                    onCheckedChange = { isChecked ->
+                                    onCheckedChange = {
                                         val selectedResponse = if (index == 0) "Sim" else "Não"
                                         viewsViewModel.updateRespostaAjuda(selectedResponse) { success ->
                                             if (success) {
@@ -166,13 +181,22 @@ fun NotificationPage(modifier: Modifier = Modifier, isVoluntario: Boolean, views
                                                 ).show()
                                             }
                                         }
-                                    },
-                                    colors = CheckboxDefaults.colors(checkedColor = Color.Green)
+                                    }
+                                )
+
+                                Spacer(modifier = Modifier.width(20.dp))
+
+                                Text(
+                                    text = if (index == 0) "Sim" else "Não",
+                                    fontSize = 16.sp,
+                                    color = Color(0xFF101214)
                                 )
                             }
                         }
                     }
                 } else {
+                    Spacer(modifier = Modifier.height(20.dp))
+
                     // "Alterar dia" button for non-voluntarios
                     Button(
                         onClick = {
@@ -283,6 +307,5 @@ fun NotificationPage(modifier: Modifier = Modifier, isVoluntario: Boolean, views
 
     }
 }
-
 
 
