@@ -78,7 +78,7 @@ fun Eventos(
             calendar.get(Calendar.MONTH),
             calendar.get(Calendar.DAY_OF_MONTH)
         ).apply {
-            datePicker.minDate = today // Restrict to today's date or later
+            datePicker.minDate = today
         }
     }
 
@@ -270,7 +270,7 @@ fun Eventos(
                             viewsViewModel.addEvent(nome, descricao, diaEvento, imageUrl) { success ->
                                 if (success) {
                                     Toast.makeText(context, "Evento adicionado com sucesso!", Toast.LENGTH_SHORT).show()
-                                    viewsViewModel.loadEvents() // Reload the events after adding
+                                    viewsViewModel.loadEvents()
                                     showDialog = false
                                 } else {
                                     Toast.makeText(context, "Erro ao adicionar evento!", Toast.LENGTH_SHORT).show()
