@@ -78,8 +78,8 @@ fun HomePage(
 
     var selectedBeneficiaryId by remember { mutableStateOf("") }
     var selectedBeneficiaryData by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
-    var searchNome by remember { mutableStateOf("") } // Search bar state
-    var searchContacto by remember { mutableStateOf("") } // Search bar state
+    var searchNome by remember { mutableStateOf("") }
+    var searchContacto by remember { mutableStateOf("") }
 
 
 
@@ -149,7 +149,7 @@ fun HomePage(
         if (showListaArtigosLevadosPopup) {
             ArtigoListWithDialog(
                 selectedBeneficiaryId = selectedBeneficiaryId,
-                showListaArtigosLevadosPopup = showListaArtigosLevadosPopup, // Pass the value here
+                showListaArtigosLevadosPopup = showListaArtigosLevadosPopup,
                 onDismiss = { showListaArtigosLevadosPopup = false },
                 viewModel = viewsViewModel
             )
