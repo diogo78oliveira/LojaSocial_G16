@@ -139,7 +139,7 @@ class ModelPage(
     ) {
         val currentUser = auth.currentUser
         if (currentUser == null) {
-            onError("Usuário não autenticado.")
+            onError("Utilizador não autenticado.")
             return
         }
 

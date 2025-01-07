@@ -203,7 +203,7 @@ fun LoginPage(
                             if (iconBitmap != null) {
                                 Image(
                                     bitmap = iconBitmap,
-                                    contentDescription = if (passwordVisible) "Esconder senha" else "Mostrar senha",
+                                    contentDescription = if (passwordVisible) "Esconder Password" else "Mostrar Password",
                                     modifier = Modifier.size(50.dp)
                                         .absolutePadding(left = 0.dp, top = 0.dp, right = 10.dp, bottom = 0.dp)
                                 )

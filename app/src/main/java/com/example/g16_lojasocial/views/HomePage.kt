@@ -25,6 +25,7 @@ import com.example.g16_lojasocial.authentication.AuthViewModel
 import android.app.DatePickerDialog
 import android.graphics.BitmapFactory
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -321,18 +322,67 @@ fun PopupDialog(viewModel: ViewsViewModel, onDismiss: () -> Unit) {
     var codigoPostal by remember { mutableStateOf("") }
     var nacionalidade by remember { mutableStateOf("") }
 
-    // State to show or hide the date picker
     val context = LocalContext.current
-    val calendar = Calendar.getInstance()
 
+    fun isValidTelemovel(telemovel: String): Boolean {
+        return telemovel.length == 9 && telemovel.all { it.isDigit() }
+    }
+
+    fun isValidCodigoPostal(codigoPostal: String): Boolean {
+        return codigoPostal.count { it == '-' } == 1 && codigoPostal.length == 8
+    }
+
+    fun isValidEmail(email: String): Boolean {
+        return email.contains("@")
+    }
+
+    fun showToast(message: String) {
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+    }
+
+    fun validateAndSave() {
+        if (nome.isEmpty() || dataNascimento.isEmpty() || email.isEmpty() ||
+            telemovel.isEmpty() || morada.isEmpty() || codigoPostal.isEmpty() || nacionalidade.isEmpty()) {
+            showToast("Todos os campos devem ser preenchidos!")
+            return
+        }
+
+        if (!isValidTelemovel(telemovel)) {
+            showToast("O número de telemóvel deve ter 9 dígitos e conter apenas números.")
+            return
+        }
+
+        if (!isValidCodigoPostal(codigoPostal)) {
+            showToast("O código postal deve ter o formato correto (ex: 1234-567).")
+            return
+        }
+
+        if (!isValidEmail(email)) {
+            showToast("O email deve conter o caractere '@'.")
+            return
+        }
+
+        viewModel.saveUserData(
+            nome = nome,
+            dataNascimento = dataNascimento,
+            email = email,
+            telemovel = telemovel,
+            morada = morada,
+            codigoPostal = codigoPostal,
+            nacionalidade = nacionalidade
+        )
+        viewModel.fetchBeneficiarios()
+        showToast("Beneficiário adicionado com sucesso!")
+        onDismiss()
+    }
+
+    val calendar = Calendar.getInstance()
     val year = calendar.get(Calendar.YEAR)
     val month = calendar.get(Calendar.MONTH)
     val day = calendar.get(Calendar.DAY_OF_MONTH)
-
     val datePickerDialog = DatePickerDialog(
         context,
         { _, selectedYear, selectedMonth, selectedDay ->
-            // Update the selected date
             dataNascimento = "$selectedDay/${selectedMonth + 1}/$selectedYear"
         },
         year,
@@ -346,20 +396,7 @@ fun PopupDialog(viewModel: ViewsViewModel, onDismiss: () -> Unit) {
         shape = RoundedCornerShape(10.dp),
         modifier = Modifier.background(Color(0xFFFFFFFF)),
         confirmButton = {
-            TextButton(onClick = {
-                viewModel.saveUserData(
-                    nome = nome,
-                    dataNascimento = dataNascimento,
-                    email = email,
-                    telemovel = telemovel,
-                    morada = morada,
-                    codigoPostal = codigoPostal,
-                    nacionalidade = nacionalidade
-                )
-                viewModel.fetchBeneficiarios()
-                onDismiss() },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent))
-            {
+            TextButton(onClick = { validateAndSave() }, colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)) {
                 Text("Confirmar", color = Color(0xFF004EBB))
             }
         },
@@ -375,45 +412,30 @@ fun PopupDialog(viewModel: ViewsViewModel, onDismiss: () -> Unit) {
                     value = nome,
                     onValueChange = { nome = it },
                     label = { Text("Nome", style = TextStyle(color = Color(0xFFA9B3C1))) },
-                    modifier = Modifier.fillMaxWidth()
-                        .background(Color(0xFFFFFFFF)),
-                    textStyle = TextStyle(
-                        color = Color(0xFF101214),
-                        fontSize = 16.sp
-                    ),
+                    modifier = Modifier.fillMaxWidth().background(Color(0xFFFFFFFF)),
+                    textStyle = TextStyle(color = Color(0xFF101214), fontSize = 16.sp),
                     colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color(0xFFFFFFFF),
-                                unfocusedContainerColor = Color(0xFFFFFFFF),
-                                cursorColor = Color(0xFF101214),
-                            )
+                        focusedContainerColor = Color(0xFFFFFFFF),
+                        unfocusedContainerColor = Color(0xFFFFFFFF),
+                        cursorColor = Color(0xFF101214),
+                    )
                 )
 
-                // Replace DataNascimento input with a calendar picker
                 OutlinedTextField(
                     value = dataNascimento,
                     onValueChange = {},
                     label = { Text("Data de Nascimento", style = TextStyle(color = Color(0xFFA9B3C1))) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { datePickerDialog.show() }
-                        .background(Color(0xFFFFFFFF)),
-                    textStyle = TextStyle(
-                        color = Color(0xFF101214),
-                        fontSize = 16.sp
-                    ),
+                    modifier = Modifier.fillMaxWidth().clickable { datePickerDialog.show() }.background(Color(0xFFFFFFFF)),
+                    textStyle = TextStyle(color = Color(0xFF101214), fontSize = 16.sp),
                     colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color(0xFFFFFFFF),
-                                unfocusedContainerColor = Color(0xFFFFFFFF),
-                                cursorColor = Color(0xFF101214),
-                            ),
+                        focusedContainerColor = Color(0xFFFFFFFF),
+                        unfocusedContainerColor = Color(0xFFFFFFFF),
+                        cursorColor = Color(0xFF101214),
+                    ),
                     readOnly = true,
                     trailingIcon = {
                         IconButton(onClick = { datePickerDialog.show() }) {
-                            Icon(
-                                imageVector = Icons.Filled.DateRange,
-                                contentDescription = "Calendar Icon",
-                                tint = Color(0xFF004EBB)
-                            )
+                            Icon(imageVector = Icons.Filled.DateRange, contentDescription = "Calendar Icon", tint = Color(0xFF004EBB))
                         }
                     }
                 )
@@ -422,87 +444,71 @@ fun PopupDialog(viewModel: ViewsViewModel, onDismiss: () -> Unit) {
                     value = email,
                     onValueChange = { email = it },
                     label = { Text("Email", style = TextStyle(color = Color(0xFFA9B3C1))) },
-                    modifier = Modifier.fillMaxWidth()
-                        .background(Color(0xFFFFFFFF)),
-                    textStyle = TextStyle(
-                        color = Color(0xFF101214),
-                        fontSize = 16.sp
-                    ),
+                    modifier = Modifier.fillMaxWidth().background(Color(0xFFFFFFFF)),
+                    textStyle = TextStyle(color = Color(0xFF101214), fontSize = 16.sp),
                     colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color(0xFFFFFFFF),
-                                unfocusedContainerColor = Color(0xFFFFFFFF),
-                                cursorColor = Color(0xFF101214),
-                            )
+                        focusedContainerColor = Color(0xFFFFFFFF),
+                        unfocusedContainerColor = Color(0xFFFFFFFF),
+                        cursorColor = Color(0xFF101214),
+                    )
                 )
+
                 OutlinedTextField(
                     value = telemovel,
                     onValueChange = { telemovel = it },
                     label = { Text("Telemóvel", style = TextStyle(color = Color(0xFFA9B3C1))) },
-                    modifier = Modifier.fillMaxWidth()
-                        .background(Color(0xFFFFFFFF)),
-                    textStyle = TextStyle(
-                        color = Color(0xFF101214),
-                        fontSize = 16.sp
-                    ),
+                    modifier = Modifier.fillMaxWidth().background(Color(0xFFFFFFFF)),
+                    textStyle = TextStyle(color = Color(0xFF101214), fontSize = 16.sp),
                     colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color(0xFFFFFFFF),
-                                unfocusedContainerColor = Color(0xFFFFFFFF),
-                                cursorColor = Color(0xFF101214),
-                            )
+                        focusedContainerColor = Color(0xFFFFFFFF),
+                        unfocusedContainerColor = Color(0xFFFFFFFF),
+                        cursorColor = Color(0xFF101214),
+                    )
                 )
+
                 OutlinedTextField(
                     value = morada,
                     onValueChange = { morada = it },
                     label = { Text("Morada", style = TextStyle(color = Color(0xFFA9B3C1))) },
-                    modifier = Modifier.fillMaxWidth()
-                        .background(Color(0xFFFFFFFF)),
-                    textStyle = TextStyle(
-                        color = Color(0xFF101214),
-                        fontSize = 16.sp
-                    ),
+                    modifier = Modifier.fillMaxWidth().background(Color(0xFFFFFFFF)),
+                    textStyle = TextStyle(color = Color(0xFF101214), fontSize = 16.sp),
                     colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color(0xFFFFFFFF),
-                                unfocusedContainerColor = Color(0xFFFFFFFF),
-                                cursorColor = Color(0xFF101214),
-                            )
+                        focusedContainerColor = Color(0xFFFFFFFF),
+                        unfocusedContainerColor = Color(0xFFFFFFFF),
+                        cursorColor = Color(0xFF101214),
+                    )
                 )
+
                 OutlinedTextField(
                     value = codigoPostal,
                     onValueChange = { codigoPostal = it },
                     label = { Text("Codigo Postal", style = TextStyle(color = Color(0xFFA9B3C1))) },
-                    modifier = Modifier.fillMaxWidth()
-                        .background(Color(0xFFFFFFFF)),
-                    textStyle = TextStyle(
-                        color = Color(0xFF101214),
-                        fontSize = 16.sp
-                    ),
+                    modifier = Modifier.fillMaxWidth().background(Color(0xFFFFFFFF)),
+                    textStyle = TextStyle(color = Color(0xFF101214), fontSize = 16.sp),
                     colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color(0xFFFFFFFF),
-                                unfocusedContainerColor = Color(0xFFFFFFFF),
-                                cursorColor = Color(0xFF101214),
-                            )
+                        focusedContainerColor = Color(0xFFFFFFFF),
+                        unfocusedContainerColor = Color(0xFFFFFFFF),
+                        cursorColor = Color(0xFF101214),
+                    )
                 )
+
                 OutlinedTextField(
                     value = nacionalidade,
                     onValueChange = { nacionalidade = it },
                     label = { Text("Nacionalidade", style = TextStyle(color = Color(0xFFA9B3C1))) },
-                    modifier = Modifier.fillMaxWidth()
-                        .background(Color(0xFFFFFFFF)),
-                    textStyle = TextStyle(
-                        color = Color(0xFF101214),
-                        fontSize = 16.sp
-                    ),
+                    modifier = Modifier.fillMaxWidth().background(Color(0xFFFFFFFF)),
+                    textStyle = TextStyle(color = Color(0xFF101214), fontSize = 16.sp),
                     colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color(0xFFFFFFFF),
-                                unfocusedContainerColor = Color(0xFFFFFFFF),
-                                cursorColor = Color(0xFF101214),
-                            )
+                        focusedContainerColor = Color(0xFFFFFFFF),
+                        unfocusedContainerColor = Color(0xFFFFFFFF),
+                        cursorColor = Color(0xFF101214),
+                    )
                 )
             }
         }
     )
-
 }
+
 
 @Composable
 fun EditPopupDialog(
@@ -521,7 +527,22 @@ fun EditPopupDialog(
 
     val context = LocalContext.current
 
-    // Date Picker Dialog
+    fun isValidTelemovel(telemovel: String): Boolean {
+        return telemovel.length == 9 && telemovel.all { it.isDigit() }
+    }
+
+    fun isValidCodigoPostal(codigoPostal: String): Boolean {
+        return codigoPostal.count { it == '-' } == 1 && codigoPostal.length == 8
+    }
+
+    fun isValidEmail(email: String): Boolean {
+        return email.contains("@")
+    }
+
+    fun showToast(message: String) {
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+    }
+
     val datePickerDialog = remember {
         DatePickerDialog(
             context,
@@ -529,7 +550,6 @@ fun EditPopupDialog(
                 val formattedDate = String.format("%02d/%02d/%d", dayOfMonth, month + 1, year)
                 dataNascimento = formattedDate
             },
-            // Set default date to today or existing value
             Calendar.getInstance().apply {
                 time = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).parse(dataNascimento) ?: Date()
             }.let {
@@ -552,43 +572,21 @@ fun EditPopupDialog(
                     value = nome,
                     onValueChange = { nome = it },
                     label = { Text("Nome", style = TextStyle(color = Color(0xFFA9B3C1))) },
-                    modifier = Modifier.fillMaxWidth()
-                        .background(Color(0xFFFFFFFF)),
-                    textStyle = TextStyle(
-                        color = Color(0xFF101214),
-                        fontSize = 16.sp
-                    ),
-                    colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color(0xFFFFFFFF),
-                                unfocusedContainerColor = Color(0xFFFFFFFF),
-                                cursorColor = Color(0xFF101214),
-                            )
+                    modifier = Modifier.fillMaxWidth().background(Color(0xFFFFFFFF)),
+                    textStyle = TextStyle(color = Color(0xFF101214), fontSize = 16.sp),
+                    colors = TextFieldDefaults.colors(focusedContainerColor = Color(0xFFFFFFFF), unfocusedContainerColor = Color(0xFFFFFFFF), cursorColor = Color(0xFF101214))
                 )
                 OutlinedTextField(
                     value = dataNascimento,
                     onValueChange = {},
                     label = { Text("Data de Nascimento", style = TextStyle(color = Color(0xFFA9B3C1))) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { datePickerDialog.show() }
-                        .background(Color(0xFFFFFFFF)),
-                    textStyle = TextStyle(
-                        color = Color(0xFF101214),
-                        fontSize = 16.sp
-                    ),
-                    colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color(0xFFFFFFFF),
-                                unfocusedContainerColor = Color(0xFFFFFFFF),
-                                cursorColor = Color(0xFF101214),
-                            ),
+                    modifier = Modifier.fillMaxWidth().clickable { datePickerDialog.show() }.background(Color(0xFFFFFFFF)),
+                    textStyle = TextStyle(color = Color(0xFF101214), fontSize = 16.sp),
+                    colors = TextFieldDefaults.colors(focusedContainerColor = Color(0xFFFFFFFF), unfocusedContainerColor = Color(0xFFFFFFFF), cursorColor = Color(0xFF101214)),
                     readOnly = true,
                     trailingIcon = {
                         IconButton(onClick = { datePickerDialog.show() }) {
-                            Icon(
-                                imageVector = Icons.Filled.DateRange,
-                                contentDescription = "Calendar Icon",
-                                tint = Color(0xFF004EBB)
-                            )
+                            Icon(imageVector = Icons.Filled.DateRange, contentDescription = "Calendar Icon", tint = Color(0xFF004EBB))
                         }
                     }
                 )
@@ -596,108 +594,68 @@ fun EditPopupDialog(
                     value = email,
                     onValueChange = { email = it },
                     label = { Text("Email", style = TextStyle(color = Color(0xFFA9B3C1))) },
-                    modifier = Modifier.fillMaxWidth()
-                        .background(Color(0xFFFFFFFF)),
-                    textStyle = TextStyle(
-                        color = Color(0xFF101214),
-                        fontSize = 16.sp
-                    ),
-                    colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color(0xFFFFFFFF),
-                                unfocusedContainerColor = Color(0xFFFFFFFF),
-                                cursorColor = Color(0xFF101214),
-                            )
+                    modifier = Modifier.fillMaxWidth().background(Color(0xFFFFFFFF)),
+                    textStyle = TextStyle(color = Color(0xFF101214), fontSize = 16.sp),
+                    colors = TextFieldDefaults.colors(focusedContainerColor = Color(0xFFFFFFFF), unfocusedContainerColor = Color(0xFFFFFFFF), cursorColor = Color(0xFF101214))
                 )
                 OutlinedTextField(
                     value = telemovel,
                     onValueChange = { telemovel = it },
                     label = { Text("Telemóvel", style = TextStyle(color = Color(0xFFA9B3C1))) },
-                    modifier = Modifier.fillMaxWidth()
-                        .background(Color(0xFFFFFFFF)),
-                    textStyle = TextStyle(
-                        color = Color(0xFF101214),
-                        fontSize = 16.sp
-                    ),
-                    colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color(0xFFFFFFFF),
-                                unfocusedContainerColor = Color(0xFFFFFFFF),
-                                cursorColor = Color(0xFF101214),
-                            )
+                    modifier = Modifier.fillMaxWidth().background(Color(0xFFFFFFFF)),
+                    textStyle = TextStyle(color = Color(0xFF101214), fontSize = 16.sp),
+                    colors = TextFieldDefaults.colors(focusedContainerColor = Color(0xFFFFFFFF), unfocusedContainerColor = Color(0xFFFFFFFF), cursorColor = Color(0xFF101214))
                 )
                 OutlinedTextField(
                     value = morada,
                     onValueChange = { morada = it },
                     label = { Text("Morada", style = TextStyle(color = Color(0xFFA9B3C1))) },
-                    modifier = Modifier.fillMaxWidth()
-                        .background(Color(0xFFFFFFFF)),
-                    textStyle = TextStyle(
-                        color = Color(0xFF101214),
-                        fontSize = 16.sp
-                    ),
-                    colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color(0xFFFFFFFF),
-                                unfocusedContainerColor = Color(0xFFFFFFFF),
-                                cursorColor = Color(0xFF101214),
-                            )
+                    modifier = Modifier.fillMaxWidth().background(Color(0xFFFFFFFF)),
+                    textStyle = TextStyle(color = Color(0xFF101214), fontSize = 16.sp),
+                    colors = TextFieldDefaults.colors(focusedContainerColor = Color(0xFFFFFFFF), unfocusedContainerColor = Color(0xFFFFFFFF), cursorColor = Color(0xFF101214))
                 )
                 OutlinedTextField(
                     value = codigoPostal,
                     onValueChange = { codigoPostal = it },
                     label = { Text("Código Postal", style = TextStyle(color = Color(0xFFA9B3C1))) },
-                    modifier = Modifier.fillMaxWidth()
-                        .background(Color(0xFFFFFFFF)),
-                    textStyle = TextStyle(
-                        color = Color(0xFF101214),
-                        fontSize = 16.sp
-                    ),
-                    colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color(0xFFFFFFFF),
-                                unfocusedContainerColor = Color(0xFFFFFFFF),
-                                cursorColor = Color(0xFF101214),
-                            )
+                    modifier = Modifier.fillMaxWidth().background(Color(0xFFFFFFFF)),
+                    textStyle = TextStyle(color = Color(0xFF101214), fontSize = 16.sp),
+                    colors = TextFieldDefaults.colors(focusedContainerColor = Color(0xFFFFFFFF), unfocusedContainerColor = Color(0xFFFFFFFF), cursorColor = Color(0xFF101214))
                 )
                 OutlinedTextField(
                     value = nacionalidade,
                     onValueChange = { nacionalidade = it },
                     label = { Text("Nacionalidade", style = TextStyle(color = Color(0xFFA9B3C1))) },
-                    modifier = Modifier.fillMaxWidth()
-                        .background(Color(0xFFFFFFFF)),
-                    textStyle = TextStyle(
-                        color = Color(0xFF101214),
-                        fontSize = 16.sp
-                    ),
-                    colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color(0xFFFFFFFF),
-                                unfocusedContainerColor = Color(0xFFFFFFFF),
-                                cursorColor = Color(0xFF101214),
-                            )
+                    modifier = Modifier.fillMaxWidth().background(Color(0xFFFFFFFF)),
+                    textStyle = TextStyle(color = Color(0xFF101214), fontSize = 16.sp),
+                    colors = TextFieldDefaults.colors(focusedContainerColor = Color(0xFFFFFFFF), unfocusedContainerColor = Color(0xFFFFFFFF), cursorColor = Color(0xFF101214))
                 )
             }
         },
         confirmButton = {
             TextButton(onClick = {
-                // Update user data
-                viewModel.updateUserData(
-                    documentId = selectedBeneficiaryId,
-                    nome = nome,
-                    dataNascimento = dataNascimento,
-                    email = email,
-                    telemovel = telemovel,
-                    morada = morada,
-                    codigoPostal = codigoPostal,
-                    nacionalidade = nacionalidade,
-                    onSuccess = {
-                        viewModel.fetchBeneficiarios() // Refresh the list
-                        onDismiss() // Close the dialog
-                    },
-                    onError = { errorMessage ->
-                        // Show error message (optional)
-                        Log.e("EditPopupDialog", "Error updating user: $errorMessage")
-                    }
-                )
-            },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-            ) {
+                if (nome.isBlank() || dataNascimento.isBlank() || !isValidEmail(email) || !isValidTelemovel(telemovel) || !isValidCodigoPostal(codigoPostal)) {
+                    showToast("Verifique os campos.")
+                } else {
+                    viewModel.updateUserData(
+                        documentId = selectedBeneficiaryId,
+                        nome = nome,
+                        dataNascimento = dataNascimento,
+                        email = email,
+                        telemovel = telemovel,
+                        morada = morada,
+                        codigoPostal = codigoPostal,
+                        nacionalidade = nacionalidade,
+                        onSuccess = {
+                            viewModel.fetchBeneficiarios()
+                            onDismiss()
+                        },
+                        onError = { errorMessage ->
+                            showToast(errorMessage)
+                        }
+                    )
+                }
+            }, colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)) {
                 Text("Guardar", color = Color(0xFF004EBB))
             }
         },
@@ -708,6 +666,7 @@ fun EditPopupDialog(
         }
     )
 }
+
 
 @Composable
 fun DeletePopupDialog(
