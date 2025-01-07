@@ -463,7 +463,27 @@ fun updateRespostaAjudaForAllUsersModel(newResponse: String, callback: (Boolean)
             emptyMap()
         }
     }
+    private val artigosLevadosTimeChart = firestore.collection("ArtigosLevados")
 
+    suspend fun getArtigosByHour(): Map<Int, Int> {
+        return try {
+            val snapshot = artigosLevadosTimeChart.get().await()
+            val hourCounts = mutableMapOf<Int, Int>()
+
+            for (document in snapshot.documents) {
+                val data = document.getString("data")
+                data?.let {
+                    // Parse the hour from the date string
+                    val hour = it.substring(11, 13).toIntOrNull()!!
+                    hourCounts[hour] = hourCounts.getOrDefault(hour, 0) + 1
+                }
+            }
+            hourCounts
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyMap()
+        }
+    }
 
 }
 

@@ -251,6 +251,17 @@ class ViewsViewModel(public val modelPage: ModelPage) : ViewModel() {
         }
     }
 
+
+    private val _artigosByHour = MutableLiveData<Map<Int, Int>>()
+    val artigosByHour: LiveData<Map<Int, Int>> get() = _artigosByHour
+
+    fun loadArtigosByHour() {
+        viewModelScope.launch {
+            val counts = modelPage.getArtigosByHour()
+            _artigosByHour.value = counts
+        }
+    }
+
     sealed class AuthState {
         object Authenticated : AuthState()
         object Unauthenticated : AuthState()

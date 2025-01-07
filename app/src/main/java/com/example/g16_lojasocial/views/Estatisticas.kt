@@ -42,11 +42,13 @@ fun Estatisticas(
     // Collect the LiveData state as Compose State
     val artigosLevadosCount by viewsViewModel.artigosLevadosCount.observeAsState(initial = 0)
     val nacionalidadeCounts by viewsViewModel.nacionalidadeCounts.observeAsState(emptyMap())
+    val artigosByHour by viewsViewModel.artigosByHour.observeAsState(initial = emptyMap())
 
     // Trigger data loading when the composable is launched
     LaunchedEffect(Unit) {
         viewsViewModel.loadArtigosLevadosCount()
         viewsViewModel.loadNacionalidadeCounts()
+        viewsViewModel.loadArtigosByHour()
     }
 
     Column(
@@ -65,15 +67,35 @@ fun Estatisticas(
         )
 
         Spacer(modifier = Modifier.height(16.dp))
+
+        // Pie Chart for Nacionalidades
         Text(
-            text = "Pie chart das nacionalidades",
+            text = "Pie Chart das Nacionalidades",
             fontSize = 24.sp,
             fontWeight = FontWeight.Medium,
             color = Color.Black
         )
-        // Display the pie chart if nacionalidade data is available
         if (nacionalidadeCounts.isNotEmpty()) {
             PieChart(data = nacionalidadeCounts)
+        } else {
+            Text(
+                text = "Carregando dados...",
+                fontSize = 16.sp,
+                color = Color.Gray
+            )
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Line Chart for Most Active Periods
+        Text(
+            text = "Horas mais ativas",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color.Black
+        )
+        if (artigosByHour.isNotEmpty()) {
+            LineChart(data = artigosByHour)
         } else {
             Text(
                 text = "Carregando dados...",
@@ -126,45 +148,109 @@ fun PieChart(
                 size = Size(2 * radius, 2 * radius)
             )
 
-            // Calculate label position for the nacionalidade name
+            // Draw labels and counts
             val labelAngle = startAngle + sweepAngle / 2
             val labelRadius = radius * 0.7f
             val labelX = (canvasWidth / 2) + labelRadius * cos(labelAngle * PI / 180).toFloat()
             val labelY = (canvasHeight / 2) + labelRadius * sin(labelAngle * PI / 180).toFloat()
 
-            drawIntoCanvas { canvas ->
-                val paint = android.graphics.Paint().apply {
-                    color = Color.Black // Correct color usage
-                    textSize = 14.sp.toPx()
-                    textAlign = android.graphics.Paint.Align.CENTER
-                }
-                canvas.nativeCanvas.drawText(
+            drawContext.canvas.nativeCanvas.apply {
+                drawText(
                     entry.key,
                     labelX,
                     labelY,
-                    paint
+                    android.graphics.Paint().apply {
+                        color = Color.Black
+                        textSize = 14.sp.toPx()
+                        textAlign = android.graphics.Paint.Align.CENTER
+                    }
                 )
-            }
-
-            // Draw the count next to the nacionalidade
-            val countX = (canvasWidth / 2) + labelRadius * cos(labelAngle * PI / 180).toFloat()
-            val countY = (canvasHeight / 2) + labelRadius * sin(labelAngle * PI / 180).toFloat() + 20.dp.toPx()
-
-            drawIntoCanvas { canvas ->
-                val paint = android.graphics.Paint().apply {
-                    color = Color.Black
-                    textSize = 12.sp.toPx()
-                    textAlign = android.graphics.Paint.Align.CENTER
-                }
-                canvas.nativeCanvas.drawText(
+                drawText(
                     entry.value.toString(),
-                    countX,
-                    countY,
-                    paint
+                    labelX,
+                    labelY + 20.dp.toPx(),
+                    android.graphics.Paint().apply {
+                        color = Color.Black
+                        textSize = 12.sp.toPx()
+                        textAlign = android.graphics.Paint.Align.CENTER
+                    }
                 )
             }
 
             startAngle += sweepAngle
+        }
+    }
+}
+
+@Composable
+fun LineChart(data: Map<Int, Int>) {
+    val sortedData = data.toSortedMap() // Sort by hour
+    val maxCount = sortedData.values.maxOrNull() ?: 1
+
+    Canvas(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp)
+            .padding(16.dp)
+    ) {
+        val canvasWidth = size.width
+        val canvasHeight = size.height
+        val barWidth = canvasWidth / 9f // Divide canvas width into 24 hours
+
+        // Draw axes
+        drawLine(
+            color = Color.Black,
+            start = Offset(0f, canvasHeight),
+            end = Offset(canvasWidth, canvasHeight),
+            strokeWidth = 2f
+        )
+        drawLine(
+            color = Color.Black,
+            start = Offset(0f, 0f),
+            end = Offset(0f, canvasHeight),
+            strokeWidth = 2f
+        )
+
+        // Calculate points for the line chart
+        val points = sortedData.entries.mapIndexed { index, entry ->
+            val x = index * barWidth
+            val y = canvasHeight - (entry.value / maxCount.toFloat() * canvasHeight)
+            Offset(x, y)
+        }
+
+        // Draw the lines between points
+        points.zipWithNext { start, end ->
+            drawLine(
+                color = Color.Blue,
+                start = start,
+                end = end,
+                strokeWidth = 4f
+            )
+        }
+
+        // Draw points and labels
+        sortedData.entries.forEachIndexed { index, (hour, count) ->
+            val x = index * barWidth
+            val y = canvasHeight - (count / maxCount.toFloat() * canvasHeight)
+
+            // Draw circle for each point
+            drawCircle(
+                color = Color.Red,
+                center = Offset(x, y),
+                radius = 5f
+            )
+
+            // Draw hour label below each point
+            drawContext.canvas.nativeCanvas.drawText(
+                hour.toString(),
+                x,
+                canvasHeight + 20,
+                android.graphics.Paint().apply {
+                    color = android.graphics.Color.BLACK
+                    textSize = 20f
+                    textAlign = android.graphics.Paint.Align.CENTER
+                }
+            )
         }
     }
 }
