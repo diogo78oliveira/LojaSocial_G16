@@ -228,6 +228,29 @@ class ViewsViewModel(public val modelPage: ModelPage) : ViewModel() {
         }
     }
 
+    private val _artigosLevadosCount = MutableLiveData<Int>()
+    val artigosLevadosCount: LiveData<Int> get() = _artigosLevadosCount
+
+    // Function to fetch the count of articles
+    fun loadArtigosLevadosCount() {
+        viewModelScope.launch {
+            val count = modelPage.getArtigosLevadosCount()
+            _artigosLevadosCount.value = count
+        }
+    }
+
+
+    private val _nacionalidadeCounts = MutableLiveData<Map<String, Int>>()
+    val nacionalidadeCounts: LiveData<Map<String, Int>> get() = _nacionalidadeCounts
+
+    // Fetch and update the nacionalidade counts
+    fun loadNacionalidadeCounts() {
+        viewModelScope.launch {
+            val counts = modelPage.getNacionalidadeCounts()
+            _nacionalidadeCounts.value = counts
+        }
+    }
+
     sealed class AuthState {
         object Authenticated : AuthState()
         object Unauthenticated : AuthState()

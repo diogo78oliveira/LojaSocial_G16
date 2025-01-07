@@ -431,6 +431,40 @@ fun updateRespostaAjudaForAllUsersModel(newResponse: String, callback: (Boolean)
             false
         }
     }
+
+
+        private val artigosLevadosCollection = firestore.collection("ArtigosLevados")
+
+        // Function to get the count of documents
+        suspend fun getArtigosLevadosCount(): Int {
+            return try {
+                val querySnapshot = artigosLevadosCollection.get().await()
+                querySnapshot.size() // Number of documents in the collection
+            } catch (e: Exception) {
+                e.printStackTrace()
+                0 // Return 0 in case of an error
+            }
+        }
+
+    private val beneficiariosCollection = firestore.collection("Beneficiarios")
+
+    // Fetch and count "nacionalidade" occurrences
+    suspend fun getNacionalidadeCounts(): Map<String, Int> {
+        return try {
+            val snapshot = beneficiariosCollection.get().await()
+            val nacionalidadeCounts = mutableMapOf<String, Int>()
+            for (document in snapshot.documents) {
+                val nacionalidade = document.getString("nacionalidade") ?: "Unknown"
+                nacionalidadeCounts[nacionalidade] = nacionalidadeCounts.getOrDefault(nacionalidade, 0) + 1
+            }
+            nacionalidadeCounts
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyMap()
+        }
+    }
+
+
 }
 
 
