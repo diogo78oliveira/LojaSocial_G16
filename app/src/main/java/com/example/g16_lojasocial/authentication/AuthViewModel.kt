@@ -4,7 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.g16_lojasocial.model.ModelPage
+import com.example.g16_lojasocial.models.ModelPage
 import kotlinx.coroutines.launch
 
 class AuthViewModel(private val modelPage: ModelPage) : ViewModel() {
