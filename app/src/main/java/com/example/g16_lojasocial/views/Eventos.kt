@@ -111,7 +111,7 @@ fun Eventos(
 
     Box(modifier = modifier.fillMaxSize().background(Color(0xFFFFFFFF))) {
         Column() {
-            if (!isVoluntario) {
+
                 Row(
                     modifier = Modifier
                         .padding(16.dp, 32.dp, 16.dp, 0.dp)
@@ -125,7 +125,7 @@ fun Eventos(
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF101214)
                     )
-
+                    if (!isVoluntario) {
                     Button(
                         onClick = { showDialog = true },
                         modifier = Modifier
@@ -148,6 +148,7 @@ fun Eventos(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(24.dp)
                     ) {
+
                         rowEvents.forEach { event ->
                             EventCard(
                                 event = event,
