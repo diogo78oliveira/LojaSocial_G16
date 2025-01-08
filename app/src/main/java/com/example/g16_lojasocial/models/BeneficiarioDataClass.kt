@@ -8,5 +8,6 @@ data class Beneficiario(
     val telemovel: String = "",
     val morada: String = "",
     val codigoPostal: String = "",
-    val nacionalidade: String = ""
+    val nacionalidade: String = "",
+    val cor: String = ""
 )

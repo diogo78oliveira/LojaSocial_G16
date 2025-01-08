@@ -34,6 +34,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.remember
@@ -302,6 +303,11 @@ fun HomePage(
                                             showListaArtigosLevadosPopup = true
                                         }
                                 )
+                                Icon(
+                                    imageVector = Icons.Default.Circle,
+                                    contentDescription = "Circular Icon",
+                                    tint = Color(android.graphics.Color.parseColor(beneficiario.cor)) // Dynamically set color
+                                )
                             }
                         }
                     }
@@ -321,6 +327,9 @@ fun PopupDialog(viewModel: ViewsViewModel, onDismiss: () -> Unit) {
     var morada by remember { mutableStateOf("") }
     var codigoPostal by remember { mutableStateOf("") }
     var nacionalidade by remember { mutableStateOf("") }
+    var cor by remember { mutableStateOf("") }
+
+    cor = "Green"
 
     val context = LocalContext.current
 
@@ -369,7 +378,8 @@ fun PopupDialog(viewModel: ViewsViewModel, onDismiss: () -> Unit) {
             telemovel = telemovel,
             morada = morada,
             codigoPostal = codigoPostal,
-            nacionalidade = nacionalidade
+            nacionalidade = nacionalidade,
+            cor = cor
         )
         viewModel.fetchBeneficiarios()
         showToast("Beneficiário adicionado com sucesso!")

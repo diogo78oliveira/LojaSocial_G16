@@ -116,7 +116,8 @@ class ModelPage(
                         telemovel = document.getString("telemovel") ?: "",
                         morada = document.getString("morada") ?: "",
                         codigoPostal = document.getString("codigoPostal") ?: "",
-                        nacionalidade = document.getString("nacionalidade") ?: ""
+                        nacionalidade = document.getString("nacionalidade") ?: "",
+                        cor = document.getString("cor") ?: ""
                     )
                 }
                 onSuccess(beneficiariosList)
@@ -134,6 +135,7 @@ class ModelPage(
         morada: String,
         codigoPostal: String,
         nacionalidade: String,
+        cor: String,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
@@ -150,7 +152,8 @@ class ModelPage(
             "telemovel" to telemovel,
             "morada" to morada,
             "codigoPostal" to codigoPostal,
-            "nacionalidade" to nacionalidade
+            "nacionalidade" to nacionalidade,
+            "cor" to cor
         )
 
         firestore.collection("Beneficiarios")
