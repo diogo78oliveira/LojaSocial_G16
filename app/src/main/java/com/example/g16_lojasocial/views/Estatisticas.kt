@@ -131,7 +131,7 @@ fun Estatisticas(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "Beneficiarios (Paises)",
+                    text = "Beneficiarios (Nacionalidades)",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color.Black
