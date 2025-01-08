@@ -43,7 +43,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import com.example.g16_lojasocial.R
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -91,6 +94,8 @@ fun HomePage(
                 beneficiario.telemovel.contains(searchNome, ignoreCase = true)
     }
 
+
+
     LaunchedEffect(authState.value) {
         when (authState.value) {
             is AuthState.Unauthenticaded -> navController.navigate("login")
@@ -99,6 +104,20 @@ fun HomePage(
     }
 
     Box(modifier = modifier.fillMaxSize().background(Color(0xFFFFFFFF))) {
+        Text(
+            text = buildAnnotatedString {
+                withStyle(style = SpanStyle(color = Color(0xFFFF6A6A), fontSize = 16.sp)) {
+                    append("Loja Social\n") // Add a line break
+                }
+                withStyle(style = SpanStyle(color = Color(0xFF004EBB), fontSize = 16.sp)) {
+                    append("S. Lázaro e S. João do Souto")
+                }
+            },
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(16.dp)
+        )
+
         TextButton(
             onClick = { authViewModel.signout() },
             modifier = Modifier
