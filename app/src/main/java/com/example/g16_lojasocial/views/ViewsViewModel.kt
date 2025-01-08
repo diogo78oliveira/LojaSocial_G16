@@ -263,6 +263,44 @@ class ViewsViewModel(public val modelPage: ModelPage) : ViewModel() {
         }
     }
 
+    private val _avisos = MutableStateFlow<List<Pair<String, String>>>(emptyList())
+    val avisos: StateFlow<List<Pair<String, String>>> get() = _avisos
+
+    fun loadAvisos(idBeneficiario: String) {
+        modelPage.fetchAvisosForBeneficiary(
+            idBeneficiario = idBeneficiario,
+            onSuccess = { avisosList ->
+                _avisos.value = avisosList
+            },
+            onError = { exception ->
+                Log.e("ViewsViewModel", "Error loading avisos: $exception")
+            }
+        )
+    }
+
+    fun saveAviso(
+        idBeneficiario: String,
+        descAviso: String,
+        onSuccess: () -> Unit,
+        onError: (Exception) -> Unit
+    ) {
+        modelPage.saveAvisos(
+            idBeneficiario = idBeneficiario,
+            descAviso = descAviso,
+            onSuccess = onSuccess,
+            onError = onError
+        )
+    }
+
+    fun updateBeneficiaryColor(
+        beneficiaryId: String,
+        newColor: String,
+        onSuccess: () -> Unit,
+        onError: (Exception) -> Unit
+    ) {
+        modelPage.updateBeneficiaryColor(beneficiaryId, newColor, onSuccess, onError)
+    }
+
     sealed class AuthState {
         object Authenticated : AuthState()
         object Unauthenticated : AuthState()

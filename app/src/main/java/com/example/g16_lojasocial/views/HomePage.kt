@@ -23,12 +23,9 @@ import androidx.navigation.NavController
 import com.example.g16_lojasocial.authentication.AuthState
 import com.example.g16_lojasocial.authentication.AuthViewModel
 import android.app.DatePickerDialog
-import android.graphics.BitmapFactory
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -42,23 +39,11 @@ import java.util.Calendar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.CheckBox
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.outlined.PersonAddAlt
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.core.graphics.toColorInt
 import com.example.g16_lojasocial.R
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -74,11 +59,13 @@ fun HomePage(
     val authState = authViewModel.authState.observeAsState()
     var showPopup by remember { mutableStateOf(false) }
     var showEditPopup by remember { mutableStateOf(false) }
-    var showDeletePopup by remember { mutableStateOf(false) }
+    var showItemsLevadosPopup by remember { mutableStateOf(false) }
     var showListaArtigosLevadosPopup by remember { mutableStateOf(false) }
+    var showAvisos by remember { mutableStateOf(false) }
 
     var selectedBeneficiaryId by remember { mutableStateOf("") }
     var selectedBeneficiaryData by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    var selectedBeneficiaryCor by remember { mutableStateOf("") }
     var searchNome by remember { mutableStateOf("") }
     var searchContacto by remember { mutableStateOf("") }
 
@@ -134,13 +121,13 @@ fun HomePage(
             )
         }
 
-        if (showDeletePopup) {
-            DeletePopupDialog(
+        if (showItemsLevadosPopup) {
+            ItemsLevadosPopup(
                 selectedBeneficiaryId = selectedBeneficiaryId,
-                onDismiss = { showDeletePopup = false },
+                onDismiss = { showItemsLevadosPopup = false },
                 onConfirm = { itemsLevados ->
                     Log.d("HomePage", "Items levados: $itemsLevados")
-                    showDeletePopup = false
+                    showItemsLevadosPopup = false
                 },
                 viewModel = viewsViewModel
             )
@@ -151,6 +138,15 @@ fun HomePage(
                 selectedBeneficiaryId = selectedBeneficiaryId,
                 showListaArtigosLevadosPopup = showListaArtigosLevadosPopup,
                 onDismiss = { showListaArtigosLevadosPopup = false },
+                viewModel = viewsViewModel
+            )
+        }
+
+        if (showAvisos) {
+            AvisosPopup(
+                selectedBeneficiaryId = selectedBeneficiaryId,
+                selectedBeneficiaryCor = selectedBeneficiaryCor,
+                onDismiss = { showAvisos = false },
                 viewModel = viewsViewModel
             )
         }
@@ -288,7 +284,7 @@ fun HomePage(
                                         .size(24.dp)
                                         .clickable {
                                             selectedBeneficiaryId = beneficiario.id
-                                            showDeletePopup = true
+                                            showItemsLevadosPopup = true
                                         }
                                 )
                                 Icon(
@@ -305,7 +301,13 @@ fun HomePage(
                                 Icon(
                                     imageVector = Icons.Default.Circle,
                                     contentDescription = "Circular Icon",
-                                    tint = Color(android.graphics.Color.parseColor(beneficiario.cor)) // Dynamically set color
+                                    tint = Color(android.graphics.Color.parseColor(beneficiario.cor)),
+                                    modifier = Modifier
+                                        .clickable {
+                                            selectedBeneficiaryId = beneficiario.id
+                                            selectedBeneficiaryCor = beneficiario.cor
+                                            showAvisos = true
+                                        }
                                 )
                             }
                         }
@@ -678,7 +680,7 @@ fun EditPopupDialog(
 
 
 @Composable
-fun DeletePopupDialog(
+fun ItemsLevadosPopup(
     selectedBeneficiaryId: String,
     onDismiss: () -> Unit,
     onConfirm: (String) -> Unit,
@@ -790,5 +792,208 @@ fun ArtigoListWithDialog(
             }
         )
     }
+}
+
+@Composable
+fun AvisosPopup(
+    selectedBeneficiaryId: String,
+    selectedBeneficiaryCor: String,
+    onDismiss: () -> Unit,
+    viewModel: ViewsViewModel
+) {
+    var AvisoEscrito by remember { mutableStateOf("") }
+    var corMudar by remember { mutableStateOf(selectedBeneficiaryCor) }
+    var dropdownExpanded by remember { mutableStateOf(false) } // State for dropdown visibility
+
+    // Load avisos when the popup is shown
+    LaunchedEffect(selectedBeneficiaryId) {
+        viewModel.loadAvisos(selectedBeneficiaryId)
+    }
+
+    // Collect the list of avisos
+    val avisos by viewModel.avisos.collectAsState()
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = Color(0xFFFFFFFF),
+        shape = RoundedCornerShape(10.dp),
+        modifier = Modifier.background(Color(0xFFFFFFFF)),
+        title = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "Avisos do beneficiário",
+                    fontSize = 16.sp,
+                    color = Color(0xFF101214),
+                    modifier = Modifier.weight(1f) // Makes text take up remaining space
+                )
+
+                Box {
+                    Icon(
+                        imageVector = Icons.Default.Circle,
+                        contentDescription = "Circular Icon",
+                        tint = Color(android.graphics.Color.parseColor(corMudar)),
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clickable {
+                                dropdownExpanded = true // Show dropdown menu
+                            }
+                    )
+
+                    DropdownMenu(
+                        expanded = dropdownExpanded,
+                        onDismissRequest = { dropdownExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            onClick = {
+                                corMudar = "Green" // Green
+                                dropdownExpanded = false
+                            },
+                            text = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.Circle,
+                                        contentDescription = "Green Icon",
+                                        tint = Color(android.graphics.Color.parseColor("#00FF00")),
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                }
+                            }
+                        )
+
+                        DropdownMenuItem(
+                            onClick = {
+                                corMudar = "Yellow" // Orange
+                                dropdownExpanded = false
+                            },
+                            text = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.Circle,
+                                        contentDescription = "Yellow Icon",
+                                        tint = Color(android.graphics.Color.parseColor("Yellow")),
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                }
+                            }
+                        )
+
+                        DropdownMenuItem(
+                            onClick = {
+                                corMudar = "Red" // Red
+                                dropdownExpanded = false
+                            },
+                            text = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.Circle,
+                                        contentDescription = "Red Icon",
+                                        tint = Color(android.graphics.Color.parseColor("Red")),
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+        },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = AvisoEscrito,
+                    onValueChange = { AvisoEscrito = it },
+                    placeholder = { Text("Aviso", style = TextStyle(color = Color(0xFFA9B3C1))) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xFFFFFFFF)),
+                    textStyle = TextStyle(
+                        color = Color(0xFF101214),
+                        fontSize = 16.sp
+                    ),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color(0xFFFFFFFF),
+                        unfocusedContainerColor = Color(0xFFFFFFFF),
+                        cursorColor = Color(0xFF101214),
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp) // Adjust height as needed
+                ) {
+                    items(avisos) { (date, aviso) ->
+                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                            Text(
+                                text = date,
+                                color = Color(0xFFA9B3C1),
+                                fontSize = 12.sp
+                            )
+                            Text(
+                                text = aviso,
+                                color = Color(0xFF101214),
+                                fontSize = 14.sp
+                            )
+                            Divider(color = Color(0xFFE0E0E0))
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    if(corMudar != selectedBeneficiaryCor) {
+                        viewModel.updateBeneficiaryColor(
+                            beneficiaryId = selectedBeneficiaryId,
+                            newColor = corMudar,  // Use the selected color
+                            onSuccess = {
+                                viewModel.loadAvisos(selectedBeneficiaryId) // Reload the list
+                                onDismiss()
+                            },
+                            onError = { exception ->
+                                Log.e("AvisosPopup", "Error updating color: $exception")
+                            }
+                        )
+                    }
+                    if (AvisoEscrito.isNotBlank()) {
+                        viewModel.saveAviso(
+                            idBeneficiario = selectedBeneficiaryId,
+                            descAviso = AvisoEscrito,
+                            onSuccess = {
+                                viewModel.loadAvisos(selectedBeneficiaryId) // Reload the list
+                                onDismiss()
+                            },
+                            onError = { exception ->
+                                Log.e("AvisosPopup", "Error saving aviso: $exception")
+                            }
+                        )
+                    }
+                    viewModel.fetchBeneficiarios()
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+            ) {
+                Text("Confirmar", color = Color(0xFF004EBB))
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+            ) {
+                Text("Cancelar", color = Color(0xFFFF6A6A))
+            }
+        }
+    )
 }
 

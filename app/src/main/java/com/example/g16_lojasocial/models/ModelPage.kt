@@ -488,6 +488,71 @@ fun updateRespostaAjudaForAllUsersModel(newResponse: String, callback: (Boolean)
         }
     }
 
+
+    fun fetchAvisosForBeneficiary(
+        idBeneficiario: String,
+        onSuccess: (List<Pair<String, String>>) -> Unit,
+        onError: (Exception) -> Unit
+    ) {
+       firestore.collection("Avisos")
+            .whereEqualTo("IDBeneficiario", idBeneficiario)
+            .get()
+            .addOnSuccessListener { documents ->
+                val avisosList = documents.mapNotNull { document ->
+                    val descAviso = document.getString("descAviso")
+                    val data = document.getString("data")
+                    if (descAviso != null && data != null) {
+                        data to descAviso
+                    } else {
+                        null
+                    }
+                }
+                onSuccess(avisosList)
+            }
+            .addOnFailureListener { exception ->
+                onError(exception)
+            }
+    }
+
+    //aaaaaaaaaaaaaaaaaaa
+    //aaaaaaaaaaaa
+    fun saveAvisos(
+        idBeneficiario: String,
+        descAviso: String,
+        onSuccess: () -> Unit,
+        onError: (Exception) -> Unit
+    ) {
+        val aviso = hashMapOf(
+            "IDBeneficiario" to idBeneficiario,
+            "data" to SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date()),
+            "descAviso" to descAviso
+        )
+
+        firestore.collection("Avisos")
+            .add(aviso)
+            .addOnSuccessListener { onSuccess() }
+            .addOnFailureListener { exception -> onError(exception) }
+    }
+
+    fun updateBeneficiaryColor(
+        beneficiaryId: String,
+        newColor: String,
+        onSuccess: () -> Unit,
+        onError: (Exception) -> Unit
+    ) {
+        val beneficiaryRef = firestore.collection("Beneficiarios").document(beneficiaryId)
+
+        beneficiaryRef.update("cor", newColor)
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener { exception ->
+                onError(exception)
+            }
+    }
+
+
+
 }
 
 
