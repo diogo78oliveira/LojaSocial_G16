@@ -22,6 +22,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,6 +44,7 @@ import androidx.navigation.NavController
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.g16_lojasocial.authentication.AuthViewModel
 import com.example.g16_lojasocial.views.ViewsViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun LogoImage() {
@@ -70,37 +72,33 @@ fun LogoImage() {
 @Composable
 fun SignupPage(modifier: Modifier = Modifier, navController: NavController, viewsViewModel: ViewsViewModel) {
     var passwordVisible by remember { mutableStateOf(false) }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var nome by remember { mutableStateOf("") }
+    var telemovel by remember { mutableStateOf("") }
+    var codigoPostal by remember { mutableStateOf("") }
+    var respostaAjuda by remember { mutableStateOf("Não") }
+    var isSuccess by remember { mutableStateOf(false) } // Success state for the button
 
-    var email by remember {
-        mutableStateOf("")
-    }
+    // Error states
+    var telemovelError by remember { mutableStateOf("") }
+    var codigoPostalError by remember { mutableStateOf("") }
 
-    var password by remember {
-        mutableStateOf("")
-    }
-    var nome by remember {
-        mutableStateOf("")
-    }
-
-    var telemovel by remember {
-        mutableStateOf("")
-    }
-
-    var codigoPostal by remember {
-        mutableStateOf("")
-    }
-
-    val respostaAjuda by remember {
-        mutableStateOf("Não")
-    }
+    // Check if all fields are valid
+    val isFormValid = email.isNotBlank() &&
+            password.isNotBlank() &&
+            nome.isNotBlank() &&
+            telemovelError.isEmpty() && telemovel.isNotBlank() &&
+            codigoPostalError.isEmpty() && codigoPostal.isNotBlank()
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFFFFFFF))
-    ){
+    ) {
         Column(
-            modifier = modifier.fillMaxSize()
+            modifier = modifier
+                .fillMaxSize()
                 .padding(horizontal = 32.dp)
                 .background(Color(0xFFFFFFFF)),
             verticalArrangement = Arrangement.Top,
@@ -108,245 +106,242 @@ fun SignupPage(modifier: Modifier = Modifier, navController: NavController, view
         ) {
             LogoImage()
 
-            Box(modifier = modifier.fillMaxWidth()
-                .background(Color(0xFFFFFFFF))
-                .shadow(
-                    elevation = 15.dp,
-                    spotColor = Color(0xFF000000).copy(alpha = 0.55f),
-                    shape = RoundedCornerShape(0.dp),
-                )){
-                OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    placeholder = {
-                        Text(
-                            text = "Insira o email",
-                            style = TextStyle(color = Color(0xFFA9B3C1))
-                        ) },
-                    modifier = Modifier.fillMaxWidth()
-                        .clip(RoundedCornerShape(5.dp))
-                        .background(Color(0xFFFFFFFF)),
-                    textStyle = TextStyle(
-                        color = Color(0xFF101214),
-                        fontSize = 16.sp
-                    ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent,
-                        cursorColor = Color(0xFF101214),
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Email input
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                placeholder = {
+                    Text(
+                        text = "Insira o email",
+                        style = TextStyle(color = Color(0xFFA9B3C1))
                     )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(5.dp))
+                    .background(Color(0xFFFFFFFF)),
+                textStyle = TextStyle(
+                    color = Color(0xFF101214),
+                    fontSize = 16.sp
+                ),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    cursorColor = Color(0xFF101214),
                 )
-            }
+            )
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            Box(modifier = modifier.fillMaxWidth()
-                .background(Color(0xFFFFFFFF))
-                .shadow(
-                    elevation = 15.dp,
-                    spotColor = Color(0xFF000000).copy(alpha = 0.55f),
-                    shape = RoundedCornerShape(0.dp),
-                )){
-                OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    placeholder = {
-                        Text(
-                            text = "Insira a palavra-passe",
-                            style = TextStyle(color = Color(0xFFA9B3C1))
-                        ) },
-                    modifier = Modifier.fillMaxWidth()
-                        .clip(RoundedCornerShape(5.dp))
-                        .background(Color(0xFFFFFFFF)),
-                    textStyle = TextStyle(
-                        color = Color(0xFF101214),
-                        fontSize = 16.sp
-                    ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent,
-                        cursorColor = Color(0xFF101214),
-                    ),
-                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    trailingIcon = {
-                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                            val context = LocalContext.current
-                            val iconBitmap = remember(passwordVisible) {
-                                try {
-                                    val fileName = if (passwordVisible) "eyeClosed.png" else "eye.png"
-                                    val inputStream = context.assets.open(fileName)
-                                    BitmapFactory.decodeStream(inputStream)?.asImageBitmap()
-                                } catch (e: Exception) {
-                                    null
-                                }
+            // Password input
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                placeholder = {
+                    Text(
+                        text = "Insira a palavra-passe",
+                        style = TextStyle(color = Color(0xFFA9B3C1))
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(5.dp))
+                    .background(Color(0xFFFFFFFF)),
+                textStyle = TextStyle(
+                    color = Color(0xFF101214),
+                    fontSize = 16.sp
+                ),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    cursorColor = Color(0xFF101214),
+                ),
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        val context = LocalContext.current
+                        val iconBitmap = remember(passwordVisible) {
+                            try {
+                                val fileName = if (passwordVisible) "eyeClosed.png" else "eye.png"
+                                val inputStream = context.assets.open(fileName)
+                                BitmapFactory.decodeStream(inputStream)?.asImageBitmap()
+                            } catch (e: Exception) {
+                                null
                             }
+                        }
 
-                            if (iconBitmap != null) {
-                                Image(
-                                    bitmap = iconBitmap,
-                                    contentDescription = if (passwordVisible) "Esconder senha" else "Mostrar senha",
-                                    modifier = Modifier.size(50.dp)
-                                        .absolutePadding(left = 0.dp, top = 0.dp, right = 10.dp, bottom = 0.dp)
-                                )
-                            } else {
-                                Text(text = "Icon not found", color = Color.Red) // Fallback in case of error
-                            }
-
+                        if (iconBitmap != null) {
+                            Image(
+                                bitmap = iconBitmap,
+                                contentDescription = if (passwordVisible) "Esconder senha" else "Mostrar senha",
+                                modifier = Modifier.size(50.dp)
+                            )
+                        } else {
+                            Text(text = "Icon not found", color = Color.Red)
                         }
                     }
+                }
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Nome input
+            OutlinedTextField(
+                value = nome,
+                onValueChange = { nome = it },
+                placeholder = {
+                    Text(
+                        text = "Insira o nome",
+                        style = TextStyle(color = Color(0xFFA9B3C1))
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(5.dp))
+                    .background(Color(0xFFFFFFFF)),
+                textStyle = TextStyle(
+                    color = Color(0xFF101214),
+                    fontSize = 16.sp
+                ),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    cursorColor = Color(0xFF101214),
+                )
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Telemovel input
+            OutlinedTextField(
+                value = telemovel,
+                onValueChange = {
+                    telemovel = it
+                    telemovelError = if (telemovel.matches(Regex("^\\d{9}$"))) {
+                        ""
+                    } else {
+                        "O telemovel deve ter exatamente 9 dígitos."
+                    }
+                },
+                placeholder = {
+                    Text(
+                        text = "Insira o telemovel",
+                        style = TextStyle(color = Color(0xFFA9B3C1))
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(5.dp))
+                    .background(Color(0xFFFFFFFF)),
+                textStyle = TextStyle(
+                    color = Color(0xFF101214),
+                    fontSize = 16.sp
+                ),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    cursorColor = Color(0xFF101214),
+                ),
+                isError = telemovelError.isNotEmpty()
+            )
+            if (telemovelError.isNotEmpty()) {
+                Text(
+                    text = telemovelError,
+                    color = Color.Red,
+                    style = TextStyle(fontSize = 12.sp)
                 )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            Box(modifier = modifier.fillMaxWidth()
-                .background(Color(0xFFFFFFFF))
-                .shadow(
-                    elevation = 15.dp,
-                    spotColor = Color(0xFF000000).copy(alpha = 0.55f),
-                    shape = RoundedCornerShape(0.dp),
-                )){
-                OutlinedTextField(
-                    value = nome,
-                    onValueChange = {
-                        nome = it
-                    },
-                    placeholder = {
-                        Text(
-                            text = "Insira o nome",
-                            style = TextStyle(color = Color(0xFFA9B3C1))
-                        ) },
-                    modifier = Modifier.fillMaxWidth()
-                        .clip(RoundedCornerShape(5.dp))
-                        .background(Color(0xFFFFFFFF)),
-                    textStyle = TextStyle(
-                        color = Color(0xFF101214),
-                        fontSize = 16.sp
-                    ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent,
-                        cursorColor = Color(0xFF101214),
+            // CodigoPostal input
+            OutlinedTextField(
+                value = codigoPostal,
+                onValueChange = {
+                    codigoPostal = it
+                    codigoPostalError = if (codigoPostal.matches(Regex("^\\d{4}-\\d{3}$"))) {
+                        ""
+                    } else {
+                        "O código postal deve estar no formato 'nnnn-nnn'."
+                    }
+                },
+                placeholder = {
+                    Text(
+                        text = "Insira o codigo postal",
+                        style = TextStyle(color = Color(0xFFA9B3C1))
                     )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(5.dp))
+                    .background(Color(0xFFFFFFFF)),
+                textStyle = TextStyle(
+                    color = Color(0xFF101214),
+                    fontSize = 16.sp
+                ),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    cursorColor = Color(0xFF101214),
+                ),
+                isError = codigoPostalError.isNotEmpty()
+            )
+            if (codigoPostalError.isNotEmpty()) {
+                Text(
+                    text = codigoPostalError,
+                    color = Color.Red,
+                    style = TextStyle(fontSize = 12.sp)
                 )
             }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Box(modifier = modifier.fillMaxWidth()
-                .background(Color(0xFFFFFFFF))
-                .shadow(
-                    elevation = 15.dp,
-                    spotColor = Color(0xFF000000).copy(alpha = 0.55f),
-                    shape = RoundedCornerShape(0.dp),
-                )){
-                OutlinedTextField(
-                    value = telemovel,
-                    onValueChange = {
-                        telemovel = it
-                    },
-                    placeholder = {
-                        Text(
-                            text = "Insira o telemovel",
-                            style = TextStyle(color = Color(0xFFA9B3C1))
-                        ) },
-                    modifier = Modifier.fillMaxWidth()
-                        .clip(RoundedCornerShape(5.dp))
-                        .background(Color(0xFFFFFFFF)),
-                    textStyle = TextStyle(
-                        color = Color(0xFF101214),
-                        fontSize = 16.sp
-                    ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent,
-                        cursorColor = Color(0xFF101214),
-                    )
-                )
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Box(modifier = modifier.fillMaxWidth()
-                .background(Color(0xFFFFFFFF))
-                .shadow(
-                    elevation = 15.dp,
-                    spotColor = Color(0xFF000000).copy(alpha = 0.55f),
-                    shape = RoundedCornerShape(0.dp),
-                )){
-                OutlinedTextField(
-                    value = codigoPostal,
-                    onValueChange = {
-                        codigoPostal = it
-                    },
-                    placeholder = {
-                        Text(
-                            text = "Insira o codigo postal",
-                            style = TextStyle(color = Color(0xFFA9B3C1))
-                        ) },
-                    modifier = Modifier.fillMaxWidth()
-                        .clip(RoundedCornerShape(5.dp))
-                        .background(Color(0xFFFFFFFF)),
-                    textStyle = TextStyle(
-                        color = Color(0xFF101214),
-                        fontSize = 16.sp
-                    ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent,
-                        cursorColor = Color(0xFF101214),
-                    )
-                )
-            }
-
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            Box(modifier = modifier.fillMaxWidth()
-                .background(Color(0xFFFFFFFF))
-                .shadow(
-                    elevation = 20.dp,
-                    spotColor = Color(0xFF000000).copy(alpha = 0.45f),
-                    shape = RoundedCornerShape(0.dp),
-                )){
-                Button(
-                    onClick = {
-                        val currentEmail = email
-                        val currentPassword = password
-                        val currentNome = nome
-                        val currentTelemovel = telemovel
-                        val currentCodigoPostal = codigoPostal
-                        val currentrespostaAjuda = respostaAjuda
+            // Button
+            Button(
+                onClick = {
+                    val currentEmail = email
+                    val currentPassword = password
+                    val currentNome = nome
+                    val currentTelemovel = telemovel
+                    val currentCodigoPostal = codigoPostal
+                    val currentRespostaAjuda = respostaAjuda
 
-                        viewsViewModel.registo(currentEmail, currentPassword, currentNome, currentTelemovel, currentCodigoPostal, currentrespostaAjuda)
-                    },
-                    modifier = Modifier.fillMaxWidth().height(60.dp),
-                    shape = MaterialTheme.shapes.small,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF004EBB), disabledContainerColor = Color(0xFF247FFF))
-                ) {
-                    Text("Registar voluntario", fontSize = 16.sp, color = Color(0xFFFFFFFF))
+                    viewsViewModel.registo(
+                        currentEmail,
+                        currentPassword,
+                        currentNome,
+                        currentTelemovel,
+                        currentCodigoPostal,
+                        currentRespostaAjuda
+                    )
+                    isSuccess = true // Trigger success state
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp),
+                shape = MaterialTheme.shapes.small,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isSuccess) Color(0xFF00FF00) else Color(0xFF004EBB)
+                ),
+                enabled = isFormValid // Enable button only when the form is valid
+            ) {
+                Text("Registar voluntario", fontSize = 16.sp, color = Color(0xFFFFFFFF))
+            }
+
+            LaunchedEffect(isSuccess) {
+                if (isSuccess) {
+                    delay(500L) // Wait for half a second
+                    isSuccess = false // Reset success state
+                    email = ""
+                    password = ""
+                    nome = ""
+                    telemovel = ""
+                    codigoPostal = ""
                 }
             }
         }
     }
 }
+
