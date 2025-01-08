@@ -51,13 +51,14 @@ class ViewsViewModel(public val modelPage: ModelPage) : ViewModel() {
         telemovel: String,
         morada: String,
         codigoPostal: String,
-        nacionalidade: String
+        nacionalidade: String,
+        cor: String
     ) {
         _authState.value = AuthState.Loading
 
         CoroutineScope(Dispatchers.IO).launch {
             modelPage.saveUserData(
-                nome, dataNascimento, email, telemovel, morada, codigoPostal, nacionalidade,
+                nome, dataNascimento, email, telemovel, morada, codigoPostal, nacionalidade, cor,
                 onSuccess = {
                     _authState.postValue(AuthState.Authenticated)
                 },
