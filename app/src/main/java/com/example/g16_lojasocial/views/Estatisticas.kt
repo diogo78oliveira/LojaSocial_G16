@@ -29,8 +29,15 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.nativeCanvas
 
 
@@ -39,12 +46,10 @@ fun Estatisticas(
     modifier: Modifier = Modifier,
     viewsViewModel: ViewsViewModel = viewModel()
 ) {
-    // Collect the LiveData state as Compose State
     val artigosLevadosCount by viewsViewModel.artigosLevadosCount.observeAsState(initial = 0)
     val nacionalidadeCounts by viewsViewModel.nacionalidadeCounts.observeAsState(emptyMap())
     val artigosByHour by viewsViewModel.artigosByHour.observeAsState(initial = emptyMap())
 
-    // Trigger data loading when the composable is launched
     LaunchedEffect(Unit) {
         viewsViewModel.loadArtigosLevadosCount()
         viewsViewModel.loadNacionalidadeCounts()
@@ -54,57 +59,97 @@ fun Estatisticas(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .background(Color(0xFFFFFFFF)),
+        verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
-        // Display the count of artigos levados
-        Text(
-            text = "Número de Artigos Levados: $artigosLevadosCount",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color.Black
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Pie Chart for Nacionalidades
-        Text(
-            text = "Pie Chart das Nacionalidades",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color.Black
-        )
-        if (nacionalidadeCounts.isNotEmpty()) {
-            PieChart(data = nacionalidadeCounts)
-        } else {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .shadow(
+                    elevation = 20.dp,
+                    spotColor = Color(0xFF000000).copy(alpha = 0.35f),
+                    shape = RoundedCornerShape(5.dp),
+                )
+                .clip(RoundedCornerShape(5.dp))
+                .background(Color.White),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
             Text(
-                text = "Carregando dados...",
-                fontSize = 16.sp,
-                color = Color.Gray
+                text = "Artigos Levados (Total): $artigosLevadosCount",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.Black,
+                modifier = Modifier.padding(16.dp)
             )
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .shadow(
+                    elevation = 20.dp,
+                    spotColor = Color(0xFF000000).copy(alpha = 0.35f),
+                    shape = RoundedCornerShape(5.dp),
+                )
+                .clip(RoundedCornerShape(5.dp))
+                .background(Color.White),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "Horas mais ativas",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.Black
+                )
+                if (artigosByHour.isNotEmpty()) {
+                    LineChart(data = artigosByHour)
+                } else {
+                    Text(
+                        text = "Carregando dados...",
+                        fontSize = 16.sp,
+                        color = Color.Gray
+                    )
+                }
+            }
+        }
 
-        // Line Chart for Most Active Periods
-        Text(
-            text = "Horas mais ativas",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color.Black
-        )
-        if (artigosByHour.isNotEmpty()) {
-            LineChart(data = artigosByHour)
-        } else {
-            Text(
-                text = "Carregando dados...",
-                fontSize = 16.sp,
-                color = Color.Gray
-            )
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .shadow(
+                    elevation = 20.dp,
+                    spotColor = Color(0xFF000000).copy(alpha = 0.35f),
+                    shape = RoundedCornerShape(5.dp),
+                )
+                .clip(RoundedCornerShape(5.dp))
+                .background(Color.White),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "Beneficiarios (Paises)",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.Black
+                )
+                if (nacionalidadeCounts.isNotEmpty()) {
+                    PieChart(data = nacionalidadeCounts)
+                } else {
+                    Text(
+                        text = "Carregando dados...",
+                        fontSize = 16.sp,
+                        color = Color.Gray
+                    )
+                }
+            }
         }
     }
 }
+
 
 @Composable
 fun PieChart(
