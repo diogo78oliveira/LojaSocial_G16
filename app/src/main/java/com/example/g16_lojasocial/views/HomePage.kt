@@ -89,7 +89,6 @@ fun HomePage(
         }
     }
 
-
     // Fetch Beneficiarios data when the page is displayed
     LaunchedEffect(Unit) {
         viewsViewModel.fetchBeneficiarios()
