@@ -562,8 +562,12 @@ class ModelPage(
             }
     }
 
+<<<<<<< Updated upstream
     // Saves a new "Aviso" for a beneficiary in the Firestore collection.
     // Executes the success callback if the operation succeeds, otherwise executes the error callback.
+=======
+
+>>>>>>> Stashed changes
     fun saveAvisos(
         idBeneficiario: String,
         descAviso: String,
