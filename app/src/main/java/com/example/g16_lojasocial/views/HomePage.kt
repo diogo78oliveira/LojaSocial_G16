@@ -145,7 +145,7 @@ fun HomePage(
                 selectedBeneficiaryId = selectedBeneficiaryId,
                 onDismiss = { showItemsLevadosPopup = false },
                 onConfirm = { itemsLevados ->
-                    Log.d("HomePage", "Items levados: $itemsLevados")
+                    Log.d("HomePage", "Artigos levados: $itemsLevados")
                     showItemsLevadosPopup = false
                 },
                 viewModel = viewsViewModel
@@ -712,13 +712,13 @@ fun ItemsLevadosPopup(
         containerColor = Color(0xFFFFFFFF),
         shape = RoundedCornerShape(10.dp),
         modifier = Modifier.background(Color(0xFFFFFFFF)),
-        title = { Text("Itens levados pelo beneficiário", fontSize = 16.sp, color = Color(0xFF101214)) },
+        title = { Text("Artigos levados pelo beneficiário", fontSize = 16.sp, color = Color(0xFF101214)) },
         text = {
             Column {
                 OutlinedTextField(
                     value = itemsLevados,
                     onValueChange = { itemsLevados = it },
-                    placeholder = { Text("Items levados", style = TextStyle(color = Color(0xFFA9B3C1))) },
+                    placeholder = { Text("Artigos levados", style = TextStyle(color = Color(0xFFA9B3C1))) },
                     modifier = Modifier.fillMaxWidth()
                         .background(Color(0xFFFFFFFF)),
                     textStyle = TextStyle(
