@@ -39,16 +39,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import com.example.g16_lojasocial.models.Event
+import com.example.g16_lojasocial.dataClasses.Event
 import java.text.SimpleDateFormat
 import java.util.Locale
 import coil.compose.AsyncImage
+import com.example.g16_lojasocial.viewmodels.EventosViewModel
 
 @Composable
 fun Eventos(
     modifier: Modifier = Modifier,
     isVoluntario: Boolean,
-    viewsViewModel: ViewsViewModel
+    eventosViewModel: EventosViewModel
 ) {
     var showDialog by remember { mutableStateOf(false) }
     var nome by remember { mutableStateOf("") }
@@ -57,10 +58,10 @@ fun Eventos(
     var imageUrl by remember { mutableStateOf("") }
     val context = LocalContext.current
 
-    val events by viewsViewModel.events.collectAsState()
+    val events by eventosViewModel.events.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewsViewModel.loadEvents()
+        eventosViewModel.loadEvents()
     }
 
     val calendar = Calendar.getInstance()
@@ -95,20 +96,20 @@ fun Eventos(
         .background(Color(0xFFFFFFFF))) {
         Column() {
 
-                Row(
-                    modifier = Modifier
-                        .padding(16.dp, 32.dp, 16.dp, 0.dp)
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        "Eventos a decorrer",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF101214)
-                    )
-                    if (!isVoluntario) {
+            Row(
+                modifier = Modifier
+                    .padding(16.dp, 32.dp, 16.dp, 0.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    "Eventos a decorrer",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF101214)
+                )
+                if (!isVoluntario) {
                     Button(
                         onClick = { showDialog = true },
                         modifier = Modifier
@@ -126,39 +127,40 @@ fun Eventos(
                 modifier = Modifier.padding(16.dp, 20.dp, 16.dp, 20.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
+                // Ongoing events
                 items(ongoingEvents.chunked(2)) { rowEvents ->
-                    Spacer(modifier = Modifier.height(40.dp))
-
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(24.dp)
                     ) {
-
                         rowEvents.forEach { event ->
                             EventCard(
                                 event = event,
-                                viewsViewModel = viewsViewModel,
+                                eventosViewModel = eventosViewModel,
                                 isVoluntario = isVoluntario,
                                 modifier = Modifier.weight(1f)
                             )
                         }
 
+                        // Fill space for uneven rows
                         if (rowEvents.size == 1) {
                             Spacer(modifier = Modifier.weight(1f))
                         }
                     }
+                }
 
-                    Spacer(modifier = Modifier.height(40.dp))
-
+                // Add title for "Eventos Passados"
+                item {
                     Text(
                         text = "Eventos Passados",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF101214),
-                        modifier = Modifier.padding(start = 16.dp)
+                        modifier = Modifier.padding(start = 16.dp, top = 16.dp)
                     )
                 }
 
+                // Past events
                 items(pastEvents.chunked(2)) { rowEvents ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -167,18 +169,17 @@ fun Eventos(
                         rowEvents.forEach { event ->
                             EventCard(
                                 event = event,
-                                viewsViewModel = viewsViewModel,
+                                eventosViewModel = eventosViewModel,
                                 isVoluntario = isVoluntario,
                                 modifier = Modifier.weight(1f)
                             )
                         }
 
+                        // Fill space for uneven rows
                         if (rowEvents.size == 1) {
                             Spacer(modifier = Modifier.weight(1f))
                         }
                     }
-
-                    Spacer(modifier = Modifier.height(40.dp))
                 }
             }
         }
@@ -196,7 +197,8 @@ fun Eventos(
                             value = nome,
                             onValueChange = { nome = it },
                             label = { Text("Nome", style = TextStyle(color = Color(0xFFA9B3C1))) },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
                                 .background(Color(0xFFFFFFFF)),
                             textStyle = TextStyle(
                                 color = Color(0xFF101214),
@@ -210,7 +212,8 @@ fun Eventos(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedTextField(value = descricao, onValueChange = { descricao = it }, label = { Text("Descrição", style = TextStyle(color = Color(0xFFA9B3C1))) },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
                                 .background(Color(0xFFFFFFFF)),
                             textStyle = TextStyle(
                                 color = Color(0xFF101214),
@@ -248,7 +251,8 @@ fun Eventos(
                             }
                         )
                         OutlinedTextField(value = imageUrl, onValueChange = { imageUrl = it }, label = { Text("URL da imagem", style = TextStyle(color = Color(0xFFA9B3C1))) },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
                                 .background(Color(0xFFFFFFFF)),
                             textStyle = TextStyle(
                                 color = Color(0xFF101214),
@@ -266,10 +270,10 @@ fun Eventos(
                 confirmButton = {
                     Button(
                         onClick = {
-                            viewsViewModel.addEvent(nome, descricao, diaEvento, imageUrl) { success ->
+                            eventosViewModel.addEvent(nome, descricao, diaEvento, imageUrl) { success ->
                                 if (success) {
                                     Toast.makeText(context, "Evento adicionado com sucesso!", Toast.LENGTH_SHORT).show()
-                                    viewsViewModel.loadEvents()
+                                    eventosViewModel.loadEvents()
                                     showDialog = false
                                 } else {
                                     Toast.makeText(context, "Erro ao adicionar evento!", Toast.LENGTH_SHORT).show()
@@ -294,7 +298,7 @@ fun Eventos(
 
 
 @Composable
-fun EventCard(event: Event, viewsViewModel: ViewsViewModel, isVoluntario: Boolean, modifier: Modifier = Modifier) {
+fun EventCard(event: Event, eventosViewModel: EventosViewModel, isVoluntario: Boolean, modifier: Modifier = Modifier) {
     var showDialog by remember { mutableStateOf(false) }
 
     Card(
@@ -343,17 +347,19 @@ fun EventCard(event: Event, viewsViewModel: ViewsViewModel, isVoluntario: Boolea
             title = { Text("Terminar Evento", color = Color(0xFF101214)) },
             text = { Text("Tem a certeza de que deseja terminar ou apagar este evento?", color = Color(0xFF101214)) },
             containerColor = Color(0xFFFFFFFF),
-            modifier = Modifier.background(Color(0xFFFFFFFF)).clip(shape = RoundedCornerShape(10.dp)),
+            modifier = Modifier
+                .background(Color(0xFFFFFFFF))
+                .clip(shape = RoundedCornerShape(10.dp)),
             dismissButton = {
                 TextButton(
                     onClick = {
-                        viewsViewModel.deleteEvent(event.id)
+                        eventosViewModel.deleteEvent(event.id)
                         showDialog = false
                     },) { Text("Apagar", color = Color(0xFFFF6A6A)) }
 
                 TextButton(
                     onClick = {
-                        viewsViewModel.updateEventStatus(event.id)
+                        eventosViewModel.updateEventStatus(event.id)
                         showDialog = false
                     },) { Text("Terminar", color = Color(0xFFFF6A6A)) }
             },

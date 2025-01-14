@@ -20,8 +20,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
-import com.example.g16_lojasocial.authentication.AuthState
-import com.example.g16_lojasocial.authentication.AuthViewModel
+import com.example.g16_lojasocial.viewmodels.AuthState
+import com.example.g16_lojasocial.viewmodels.AuthViewModel
 import android.app.DatePickerDialog
 import android.util.Log
 import android.widget.Toast
@@ -48,6 +48,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import com.example.g16_lojasocial.R
+import com.example.g16_lojasocial.viewmodels.HomePageViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -57,7 +58,7 @@ fun HomePage(
     modifier: Modifier = Modifier,
     navController: NavController,
     authViewModel: AuthViewModel,
-    viewsViewModel: ViewsViewModel
+    homePageViewModel: HomePageViewModel
 ) {
     val authState = authViewModel.authState.observeAsState()
     var showPopup by remember { mutableStateOf(false) }
@@ -76,17 +77,17 @@ fun HomePage(
 
     LaunchedEffect(selectedBeneficiaryId) {
         if (selectedBeneficiaryId.isNotEmpty()) {
-            viewsViewModel.fetchArtigosByBeneficiario(selectedBeneficiaryId)
+            homePageViewModel.fetchArtigosByBeneficiario(selectedBeneficiaryId)
         }
     }
 
     // Fetch Beneficiarios data when the page is displayed
     LaunchedEffect(Unit) {
-        viewsViewModel.fetchBeneficiarios()
+        homePageViewModel.fetchBeneficiarios()
     }
 
     // Observe the Beneficiarios list
-    val beneficiariosList by viewsViewModel.beneficiariosList.observeAsState(emptyList())
+    val beneficiariosList by homePageViewModel.beneficiariosList.observeAsState(emptyList())
 
     // Filtered list based on search text
     val filteredBeneficiarios = beneficiariosList.filter { beneficiario ->
@@ -128,14 +129,14 @@ fun HomePage(
         }
 
         if (showPopup) {
-            PopupDialog(viewModel = viewsViewModel, onDismiss = { showPopup = false })
+            PopupDialog(homePageViewModel = homePageViewModel, onDismiss = { showPopup = false })
         }
 
         if (showEditPopup) {
             EditPopupDialog(
                 selectedBeneficiaryId = selectedBeneficiaryId,
                 selectedBeneficiaryData = selectedBeneficiaryData,
-                viewModel = viewsViewModel,
+                homePageViewModel = homePageViewModel,
                 onDismiss = { showEditPopup = false }
             )
         }
@@ -148,7 +149,7 @@ fun HomePage(
                     Log.d("HomePage", "Artigos levados: $itemsLevados")
                     showItemsLevadosPopup = false
                 },
-                viewModel = viewsViewModel
+                homePageViewModel = homePageViewModel
             )
         }
 
@@ -157,7 +158,7 @@ fun HomePage(
                 selectedBeneficiaryId = selectedBeneficiaryId,
                 showListaArtigosLevadosPopup = showListaArtigosLevadosPopup,
                 onDismiss = { showListaArtigosLevadosPopup = false },
-                viewModel = viewsViewModel
+                homePageViewModel = homePageViewModel
             )
         }
 
@@ -166,7 +167,7 @@ fun HomePage(
                 selectedBeneficiaryId = selectedBeneficiaryId,
                 selectedBeneficiaryCor = selectedBeneficiaryCor,
                 onDismiss = { showAvisos = false },
-                viewModel = viewsViewModel
+                homePageViewModel = homePageViewModel
             )
         }
 
@@ -290,7 +291,8 @@ fun HomePage(
                                                 "telemovel" to beneficiario.telemovel,
                                                 "morada" to beneficiario.morada,
                                                 "codigoPostal" to beneficiario.codigoPostal,
-                                                "nacionalidade" to beneficiario.nacionalidade
+                                                "nacionalidade" to beneficiario.nacionalidade,
+                                                "cor" to beneficiario.cor
                                             )
                                             showEditPopup = true
                                         }
@@ -339,7 +341,7 @@ fun HomePage(
 
 
 @Composable
-fun PopupDialog(viewModel: ViewsViewModel, onDismiss: () -> Unit) {
+fun PopupDialog(homePageViewModel: HomePageViewModel, onDismiss: () -> Unit) {
     var nome by remember { mutableStateOf("") }
     var dataNascimento by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -391,7 +393,7 @@ fun PopupDialog(viewModel: ViewsViewModel, onDismiss: () -> Unit) {
             return
         }
 
-        viewModel.saveUserData(
+        homePageViewModel.saveUserData(
             nome = nome,
             dataNascimento = dataNascimento,
             email = email,
@@ -401,7 +403,7 @@ fun PopupDialog(viewModel: ViewsViewModel, onDismiss: () -> Unit) {
             nacionalidade = nacionalidade,
             cor = cor
         )
-        viewModel.fetchBeneficiarios()
+        homePageViewModel.fetchBeneficiarios()
         showToast("Beneficiário adicionado com sucesso!")
         onDismiss()
     }
@@ -544,7 +546,7 @@ fun PopupDialog(viewModel: ViewsViewModel, onDismiss: () -> Unit) {
 fun EditPopupDialog(
     selectedBeneficiaryId: String,
     selectedBeneficiaryData: Map<String, String>,
-    viewModel: ViewsViewModel,
+    homePageViewModel: HomePageViewModel,
     onDismiss: () -> Unit
 ) {
     var nome by remember { mutableStateOf(selectedBeneficiaryData["nome"] ?: "") }
@@ -554,6 +556,7 @@ fun EditPopupDialog(
     var morada by remember { mutableStateOf(selectedBeneficiaryData["morada"] ?: "") }
     var codigoPostal by remember { mutableStateOf(selectedBeneficiaryData["codigoPostal"] ?: "") }
     var nacionalidade by remember { mutableStateOf(selectedBeneficiaryData["nacionalidade"] ?: "") }
+    var cor by remember { mutableStateOf(selectedBeneficiaryData["cor"] ?: "") }
 
     val context = LocalContext.current
 
@@ -667,7 +670,7 @@ fun EditPopupDialog(
                 if (nome.isBlank() || dataNascimento.isBlank() || !isValidEmail(email) || !isValidTelemovel(telemovel) || !isValidCodigoPostal(codigoPostal)) {
                     showToast("Verifique os campos.")
                 } else {
-                    viewModel.updateUserData(
+                    homePageViewModel.updateUserData(
                         documentId = selectedBeneficiaryId,
                         nome = nome,
                         dataNascimento = dataNascimento,
@@ -676,8 +679,9 @@ fun EditPopupDialog(
                         morada = morada,
                         codigoPostal = codigoPostal,
                         nacionalidade = nacionalidade,
+                        cor = cor,
                         onSuccess = {
-                            viewModel.fetchBeneficiarios()
+                            homePageViewModel.fetchBeneficiarios()
                             onDismiss()
                         },
                         onError = { errorMessage ->
@@ -703,7 +707,7 @@ fun ItemsLevadosPopup(
     selectedBeneficiaryId: String,
     onDismiss: () -> Unit,
     onConfirm: (String) -> Unit,
-    viewModel: ViewsViewModel
+    homePageViewModel: HomePageViewModel
 ) {
     var itemsLevados by remember { mutableStateOf("") }
 
@@ -736,7 +740,7 @@ fun ItemsLevadosPopup(
         confirmButton = {
             TextButton(onClick = {
                 if (itemsLevados.isNotBlank()) {
-                    viewModel.saveArtigosLevados(
+                    homePageViewModel.saveArtigosLevados(
                         idBeneficiario = selectedBeneficiaryId,
                         descArtigo = itemsLevados,
                         onSuccess = {
@@ -768,16 +772,16 @@ fun ArtigoListWithDialog(
     selectedBeneficiaryId: String,  // Receive this parameter
     showListaArtigosLevadosPopup: Boolean,  // State for showing the popup
     onDismiss: () -> Unit,  // Callback to dismiss the dialog
-    viewModel: ViewsViewModel  // The ViewModel to call fetchArtigosByBeneficiario
+    homePageViewModel: HomePageViewModel  // The ViewModel to call fetchArtigosByBeneficiario
 ) {
     // Observe the artigosList LiveData
-    val artigosList by viewModel.artigosList.observeAsState(emptyList())  // Default to empty list if no data
+    val artigosList by homePageViewModel.artigosList.observeAsState(emptyList())  // Default to empty list if no data
 
     // Trigger fetchArtigosByBeneficiario when the popup is shown
     if (showListaArtigosLevadosPopup) {
         LaunchedEffect(selectedBeneficiaryId) {
             // Fetch artigos when the popup is shown for the first time or beneficiary is changed
-            viewModel.fetchArtigosByBeneficiario(selectedBeneficiaryId)
+            homePageViewModel.fetchArtigosByBeneficiario(selectedBeneficiaryId)
         }
 
         // Show AlertDialog with LazyColumn displaying artigos
@@ -818,7 +822,7 @@ fun AvisosPopup(
     selectedBeneficiaryId: String,
     selectedBeneficiaryCor: String,
     onDismiss: () -> Unit,
-    viewModel: ViewsViewModel
+    homePageViewModel: HomePageViewModel
 ) {
     var AvisoEscrito by remember { mutableStateOf("") }
     var corMudar by remember { mutableStateOf(selectedBeneficiaryCor) }
@@ -826,11 +830,11 @@ fun AvisosPopup(
 
     // Load avisos when the popup is shown
     LaunchedEffect(selectedBeneficiaryId) {
-        viewModel.loadAvisos(selectedBeneficiaryId)
+        homePageViewModel.loadAvisos(selectedBeneficiaryId)
     }
 
     // Collect the list of avisos
-    val avisos by viewModel.avisos.collectAsState()
+    val avisos by homePageViewModel.avisos.collectAsState()
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -973,11 +977,11 @@ fun AvisosPopup(
             TextButton(
                 onClick = {
                     if(corMudar != selectedBeneficiaryCor) {
-                        viewModel.updateBeneficiaryColor(
+                        homePageViewModel.updateBeneficiaryColor(
                             beneficiaryId = selectedBeneficiaryId,
                             newColor = corMudar,  // Use the selected color
                             onSuccess = {
-                                viewModel.loadAvisos(selectedBeneficiaryId) // Reload the list
+                                homePageViewModel.loadAvisos(selectedBeneficiaryId) // Reload the list
                                 onDismiss()
                             },
                             onError = { exception ->
@@ -986,11 +990,11 @@ fun AvisosPopup(
                         )
                     }
                     if (AvisoEscrito.isNotBlank()) {
-                        viewModel.saveAviso(
+                        homePageViewModel.saveAviso(
                             idBeneficiario = selectedBeneficiaryId,
                             descAviso = AvisoEscrito,
                             onSuccess = {
-                                viewModel.loadAvisos(selectedBeneficiaryId) // Reload the list
+                                homePageViewModel.loadAvisos(selectedBeneficiaryId) // Reload the list
                                 onDismiss()
                             },
                             onError = { exception ->
@@ -998,7 +1002,7 @@ fun AvisosPopup(
                             }
                         )
                     }
-                    viewModel.fetchBeneficiarios()
+                    homePageViewModel.fetchBeneficiarios()
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
             ) {

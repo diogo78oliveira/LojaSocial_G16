@@ -22,20 +22,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
-import com.example.g16_lojasocial.authentication.AuthViewModel
+import com.example.g16_lojasocial.viewmodels.AuthViewModel
 import com.example.g16_lojasocial.views.HomePage
 import com.example.g16_lojasocial.views.SignupPage
 import com.example.g16_lojasocial.views.Estatisticas
 import com.example.g16_lojasocial.views.NotificationPage
 import com.example.g16_lojasocial.views.Eventos
-import com.example.g16_lojasocial.views.ViewsViewModel
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.example.g16_lojasocial.models.NavItem
+import com.example.g16_lojasocial.dataClasses.NavItem
+import com.example.g16_lojasocial.viewmodels.EstatisticasViewModel
+import com.example.g16_lojasocial.viewmodels.EventosViewModel
+import com.example.g16_lojasocial.viewmodels.HomePageViewModel
+import com.example.g16_lojasocial.viewmodels.SignUpViewModel
+import com.example.g16_lojasocial.viewmodels.VoluntariosViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,7 +47,11 @@ fun MainScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
     authViewModel: AuthViewModel,
-    viewsViewModel: ViewsViewModel
+    estatisticasViewModel: EstatisticasViewModel,
+    eventosViewModel: EventosViewModel,
+    voluntariosViewModel: VoluntariosViewModel,
+    signUpViewModel: SignUpViewModel,
+    homePageViewModel: HomePageViewModel
 ) {
     val isVoluntario by authViewModel.isVoluntario.observeAsState(initial = false)
 
@@ -116,9 +124,12 @@ fun MainScreen(
             selectedScreenIndex = selectedNavItem.screenIndex,
             navController = navController,
             authViewModel = authViewModel,
-            viewsViewModel = viewsViewModel,
+            estatisticasViewModel = estatisticasViewModel,
+            eventosViewModel = eventosViewModel,
+            voluntariosViewModel = voluntariosViewModel,
+            signUpViewModel = signUpViewModel,
+            homePageViewModel = homePageViewModel,
             isVoluntario = isVoluntario
-
         )
 
     }
@@ -130,14 +141,18 @@ fun ContentScreen(
     selectedScreenIndex: Int,
     navController: NavController,
     authViewModel: AuthViewModel,
-    viewsViewModel: ViewsViewModel,
+    estatisticasViewModel: EstatisticasViewModel,
+    eventosViewModel: EventosViewModel,
+    voluntariosViewModel: VoluntariosViewModel,
+    signUpViewModel: SignUpViewModel,
+    homePageViewModel: HomePageViewModel,
     isVoluntario: Boolean
 ) {
     when (selectedScreenIndex) {
-        0 -> HomePage(navController = navController, authViewModel = authViewModel, viewsViewModel = viewsViewModel)
-        1 -> Eventos(isVoluntario = isVoluntario, viewsViewModel = viewsViewModel)
-        2 -> SignupPage(navController = navController, viewsViewModel = viewsViewModel)
-        3 -> NotificationPage(isVoluntario = isVoluntario, viewsViewModel = viewsViewModel)
-        4 -> Estatisticas(viewsViewModel = viewsViewModel)
+        0 -> HomePage(navController = navController, authViewModel = authViewModel, homePageViewModel = homePageViewModel)
+        1 -> Eventos(isVoluntario = isVoluntario, eventosViewModel = eventosViewModel)
+        2 -> SignupPage(navController = navController,  signUpViewModel = signUpViewModel)
+        3 -> NotificationPage(isVoluntario = isVoluntario,  voluntariosViewModel = voluntariosViewModel)
+        4 -> Estatisticas( estatisticasViewModel = estatisticasViewModel)
     }
 }

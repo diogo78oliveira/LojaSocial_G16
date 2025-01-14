@@ -5,13 +5,16 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.g16_lojasocial.MainScreen
-import com.example.g16_lojasocial.authentication.AuthViewModel
-import com.example.g16_lojasocial.authentication.pages.LoginPage
-import com.example.g16_lojasocial.views.ViewsViewModel
+import com.example.g16_lojasocial.viewmodels.AuthViewModel
+import com.example.g16_lojasocial.views.LoginPage
+import com.example.g16_lojasocial.viewmodels.EstatisticasViewModel
+import com.example.g16_lojasocial.viewmodels.EventosViewModel
+import com.example.g16_lojasocial.viewmodels.VoluntariosViewModel
+import com.example.g16_lojasocial.viewmodels.SignUpViewModel
+import com.example.g16_lojasocial.viewmodels.HomePageViewModel
 
 @Composable
-fun MyAppNavigation(modifier: Modifier = Modifier,authViewModel: AuthViewModel, viewsViewModel: ViewsViewModel) {
+fun MyAppNavigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel, estatisticasViewModel: EstatisticasViewModel, eventosViewModel: EventosViewModel, voluntariosViewModel: VoluntariosViewModel, signUpViewModel: SignUpViewModel, homePageViewModel: HomePageViewModel) {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "login", builder = {
@@ -20,7 +23,7 @@ fun MyAppNavigation(modifier: Modifier = Modifier,authViewModel: AuthViewModel, 
         }
 
         composable("mainScreen") {
-            MainScreen(modifier, navController, authViewModel, viewsViewModel)
+            MainScreen(modifier, navController, authViewModel, estatisticasViewModel, eventosViewModel, voluntariosViewModel, signUpViewModel, homePageViewModel)
         }
     })
 }

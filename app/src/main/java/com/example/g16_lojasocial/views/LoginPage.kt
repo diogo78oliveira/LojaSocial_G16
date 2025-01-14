@@ -1,10 +1,8 @@
-package com.example.g16_lojasocial.authentication.pages
-import android.content.res.Resources.Theme
+package com.example.g16_lojasocial.views
 import android.graphics.BitmapFactory
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,7 +22,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,11 +43,11 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.g16_lojasocial.authentication.AuthState
-import com.example.g16_lojasocial.authentication.AuthViewModel
+import com.example.g16_lojasocial.viewmodels.AuthState
+import com.example.g16_lojasocial.viewmodels.AuthViewModel
 
 @Composable
-fun LogoImage() {
+fun LojaImage() {
     val context = LocalContext.current
     val imageBitmap = remember {
         try {
@@ -114,7 +111,7 @@ fun LoginPage(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            LogoImage()
+            LojaImage()
 
             Spacer(modifier = Modifier.height(16.dp))
 

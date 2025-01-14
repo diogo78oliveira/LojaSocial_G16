@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -30,20 +29,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.google.firebase.firestore.FirebaseFirestore
-import com.example.g16_lojasocial.authentication.AuthViewModel
-import com.example.g16_lojasocial.views.ViewsViewModel
+import com.example.g16_lojasocial.viewmodels.SignUpViewModel
 import kotlinx.coroutines.delay
 
 @Composable
@@ -70,7 +66,11 @@ fun LogoImage() {
 }
 
 @Composable
-fun SignupPage(modifier: Modifier = Modifier, navController: NavController, viewsViewModel: ViewsViewModel) {
+fun SignupPage(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    signUpViewModel: SignUpViewModel
+) {
     var passwordVisible by remember { mutableStateOf(false) }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -78,15 +78,28 @@ fun SignupPage(modifier: Modifier = Modifier, navController: NavController, view
     var telemovel by remember { mutableStateOf("") }
     var codigoPostal by remember { mutableStateOf("") }
     var respostaAjuda by remember { mutableStateOf("Não") }
-    var isSuccess by remember { mutableStateOf(false) } // Success state for the button
+    var isSuccess by remember { mutableStateOf(false) }
 
     // Error states
+    var emailError by remember { mutableStateOf("") }
+    var passwordError by remember { mutableStateOf("") }
     var telemovelError by remember { mutableStateOf("") }
     var codigoPostalError by remember { mutableStateOf("") }
 
+    // Email validation function
+    fun isValidEmail(email: String): Boolean {
+        return email.matches(Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\$"))
+    }
+
+    fun isValidPassword(password: String): Boolean {
+        return password.length >= 6
+    }
+
     // Check if all fields are valid
     val isFormValid = email.isNotBlank() &&
+            emailError.isEmpty() &&
             password.isNotBlank() &&
+            passwordError.isEmpty() &&
             nome.isNotBlank() &&
             telemovelError.isEmpty() && telemovel.isNotBlank() &&
             codigoPostalError.isEmpty() && codigoPostal.isNotBlank()
@@ -111,7 +124,14 @@ fun SignupPage(modifier: Modifier = Modifier, navController: NavController, view
             // Email input
             OutlinedTextField(
                 value = email,
-                onValueChange = { email = it },
+                onValueChange = {
+                    email = it
+                    emailError = if (isValidEmail(email)) {
+                        ""
+                    } else {
+                        "Formato de email inválido."
+                    }
+                },
                 placeholder = {
                     Text(
                         text = "Insira o email",
@@ -130,15 +150,30 @@ fun SignupPage(modifier: Modifier = Modifier, navController: NavController, view
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
                     cursorColor = Color(0xFF101214),
-                )
+                ),
+                isError = emailError.isNotEmpty()
             )
+            if (emailError.isNotEmpty()) {
+                Text(
+                    text = emailError,
+                    color = Color.Red,
+                    style = TextStyle(fontSize = 12.sp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
 
             // Password input
             OutlinedTextField(
                 value = password,
-                onValueChange = { password = it },
+                onValueChange = {
+                    password = it
+                    passwordError = if (isValidPassword(password)) {
+                        ""
+                    } else {
+                        "A palavra-passe deve ter pelo menos 6 caracteres."
+                    }
+                },
                 placeholder = {
                     Text(
                         text = "Insira a palavra-passe",
@@ -182,8 +217,16 @@ fun SignupPage(modifier: Modifier = Modifier, navController: NavController, view
                             Text(text = "Icon not found", color = Color.Red)
                         }
                     }
-                }
+                },
+                isError = passwordError.isNotEmpty()
             )
+            if (passwordError.isNotEmpty()) {
+                Text(
+                    text = passwordError,
+                    color = Color.Red,
+                    style = TextStyle(fontSize = 12.sp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -301,22 +344,15 @@ fun SignupPage(modifier: Modifier = Modifier, navController: NavController, view
             // Button
             Button(
                 onClick = {
-                    val currentEmail = email
-                    val currentPassword = password
-                    val currentNome = nome
-                    val currentTelemovel = telemovel
-                    val currentCodigoPostal = codigoPostal
-                    val currentRespostaAjuda = respostaAjuda
-
-                    viewsViewModel.registo(
-                        currentEmail,
-                        currentPassword,
-                        currentNome,
-                        currentTelemovel,
-                        currentCodigoPostal,
-                        currentRespostaAjuda
+                    signUpViewModel.registo(
+                        email,
+                        password,
+                        nome,
+                        telemovel,
+                        codigoPostal,
+                        respostaAjuda
                     )
-                    isSuccess = true // Trigger success state
+                    isSuccess = true
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -325,11 +361,17 @@ fun SignupPage(modifier: Modifier = Modifier, navController: NavController, view
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (isSuccess) Color(0xFF00FF00) else Color(0xFF004EBB)
                 ),
-                enabled = isFormValid // Enable button only when the form is valid
+                enabled = isFormValid
             ) {
-                Text("Registar voluntario", fontSize = 16.sp, color = Color(0xFFFFFFFF))
+                Text(
+                    text = "Registar",
+                    style = TextStyle(
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
             }
-
             LaunchedEffect(isSuccess) {
                 if (isSuccess) {
                     delay(500L) // Wait for half a second
@@ -344,4 +386,3 @@ fun SignupPage(modifier: Modifier = Modifier, navController: NavController, view
         }
     }
 }
-

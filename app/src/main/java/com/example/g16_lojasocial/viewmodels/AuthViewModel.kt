@@ -1,13 +1,13 @@
-package com.example.g16_lojasocial.authentication
+package com.example.g16_lojasocial.viewmodels
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.g16_lojasocial.models.ModelPage
+import com.example.g16_lojasocial.models.AuthModel
 import kotlinx.coroutines.launch
 
-class AuthViewModel(private val modelPage: ModelPage) : ViewModel() {
+class AuthViewModel(public val authModelPage: AuthModel) : ViewModel() {
 
     private val _authState = MutableLiveData<AuthState>()
     val authState: LiveData<AuthState> get() = _authState
@@ -18,7 +18,7 @@ class AuthViewModel(private val modelPage: ModelPage) : ViewModel() {
 
     // Check if user is logged in and their role
     fun checkAuthStatus() {
-        val user = modelPage.getCurrentUser()
+        val user = authModelPage.getCurrentUser()
         if (user == null) {
             _authState.value = AuthState.Unauthenticaded
         } else {
@@ -36,7 +36,7 @@ class AuthViewModel(private val modelPage: ModelPage) : ViewModel() {
 
         _authState.value = AuthState.Loading
 
-        modelPage.login(
+        authModelPage.login(
             email = email,
             password = password,
             onSuccess = {
@@ -52,7 +52,7 @@ class AuthViewModel(private val modelPage: ModelPage) : ViewModel() {
     // Check if the user is a "Voluntário"
     private fun checkIfVoluntario(uid: String) {
         viewModelScope.launch {
-            modelPage.checkIfVoluntario(uid) { isVoluntario ->
+            authModelPage.checkIfVoluntario(uid) { isVoluntario ->
                 _isVoluntario.postValue(isVoluntario)
             }
         }
@@ -60,7 +60,7 @@ class AuthViewModel(private val modelPage: ModelPage) : ViewModel() {
 
     // Logout logic
     fun signout() {
-        modelPage.signout()
+        authModelPage.signout()
         _authState.value = AuthState.Unauthenticaded
         _isVoluntario.value = false
     }

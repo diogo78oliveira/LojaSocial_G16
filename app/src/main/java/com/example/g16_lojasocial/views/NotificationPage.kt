@@ -33,6 +33,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import com.example.g16_lojasocial.viewmodels.VoluntariosViewModel
 
 @Composable
 fun CircularCheckbox(
@@ -60,25 +61,25 @@ fun CircularCheckbox(
 }
 
 @Composable
-fun NotificationPage(modifier: Modifier = Modifier, isVoluntario: Boolean, viewsViewModel: ViewsViewModel) {
+fun NotificationPage(modifier: Modifier = Modifier, isVoluntario: Boolean, voluntariosViewModel: VoluntariosViewModel) {
     val context = LocalContext.current
     var selectedDate by remember { mutableStateOf<String?>(null) }
     var respostaAjuda by remember { mutableStateOf<String?>(null) }
 
     // Fetch the date from Firestore when `isVoluntario` changes or when the composable is launched
     LaunchedEffect(isVoluntario) {
-        viewsViewModel.loadRespostaAjuda()
-        viewsViewModel.modelPage.getDia { dia ->
+        voluntariosViewModel.loadRespostaAjuda()
+        voluntariosViewModel.voluntariosModel.getDia { dia ->
             selectedDate = dia
         }
         // Load the Voluntarios with "Sim" response for respostaAjuda
-        viewsViewModel.loadVoluntariosSim()
+        voluntariosViewModel.loadVoluntariosSim()
     }
 
     // Fetch current respostaAjuda state
-    respostaAjuda = viewsViewModel.respostaAjuda
+    respostaAjuda = voluntariosViewModel.respostaAjuda
     // List of Voluntarios with "Sim" respostaAjuda
-    val voluntariosSim = viewsViewModel.voluntariosSim
+    val voluntariosSim = voluntariosViewModel.voluntariosSim
 
     Column(
         modifier = modifier
@@ -145,11 +146,11 @@ fun NotificationPage(modifier: Modifier = Modifier, isVoluntario: Boolean, views
                                     checked = respostaAjuda == if (index == 0) "Sim" else "Não",
                                     onCheckedChange = {
                                         val selectedResponse = if (index == 0) "Sim" else "Não"
-                                        viewsViewModel.updateRespostaAjuda(selectedResponse) { success ->
+                                        voluntariosViewModel.updateRespostaAjuda(selectedResponse) { success ->
                                             if (success) {
                                                 respostaAjuda = selectedResponse
                                                 // Reload Voluntarios after updating respostaAjuda
-                                                viewsViewModel.loadVoluntariosSim()
+                                                voluntariosViewModel.loadVoluntariosSim()
                                             } else {
                                                 Toast.makeText(
                                                     context,
@@ -193,14 +194,14 @@ fun NotificationPage(modifier: Modifier = Modifier, isVoluntario: Boolean, views
                                     Log.d("NotificationPage", "Selected date: $formattedDate")
 
                                     // Save the selected date to Firestore
-                                    viewsViewModel.saveDateToFirebase(formattedDate) { success ->
+                                    voluntariosViewModel.saveDateToFirebase(formattedDate) { success ->
                                         if (success) {
                                             // Update respostaAjuda for all users to "Não"
-                                            viewsViewModel.updateRespostaAjudaForAllUsers("Não") { updateSuccess ->
+                                            voluntariosViewModel.updateRespostaAjudaForAllUsers("Não") { updateSuccess ->
                                                 if (updateSuccess) {
                                                     Toast.makeText(context, "Data e resposta atualizadas com sucesso!", Toast.LENGTH_SHORT).show()
                                                     // Reload Voluntarios after updating
-                                                    viewsViewModel.loadVoluntariosSim()
+                                                    voluntariosViewModel.loadVoluntariosSim()
                                                 } else {
                                                     Toast.makeText(context, "Erro ao atualizar respostas.", Toast.LENGTH_SHORT).show()
                                                 }

@@ -1,4 +1,4 @@
-package com.example.g16_lojasocial.models
+package com.example.g16_lojasocial.dataClasses
 
 data class Beneficiario(
     val id: String = "",
